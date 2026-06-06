@@ -17,22 +17,12 @@ namespace Unilife.Models
         [Required]
         public string Semestre { get; set; } = string.Empty;
 
-        [Required]
-        public string Docente { get; set; } = string.Empty;
+        [Display(Name = "Docente")]
+        public string? DocenteId { get; set; }
+        public ApplicationUser? DocenteUser { get; set; }
 
-        [Display(Name = "Hora de inicio")]
-        [DataType(DataType.Time)]
-        public TimeSpan HoraInicio { get; set; }
-
-        [Display(Name = "Hora de fin")]
-        [DataType(DataType.Time)]
-        public TimeSpan HoraFin { get; set; }
-
-        public string Pabellon { get; set; } = string.Empty;
-
-        public string Aula { get; set; } = string.Empty;
-
-        [Display(Name = "Código de aula")]
-        public string CodigoAula { get; set; } = string.Empty;
+        public ICollection<HorarioCurso> Horarios { get; set; } = new List<HorarioCurso>();
+        public ICollection<CursoAlumno> Participantes { get; set; } = new List<CursoAlumno>();
+        public ICollection<Modulo> Modulos { get; set; } = new List<Modulo>();
     }
 }

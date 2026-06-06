@@ -1,5 +1,5 @@
-﻿<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,30 +13,70 @@
 <body>
     @{
         var controlador = ViewContext.RouteData.Values["controller"]?.ToString();
-        string Activo(string c) => controlador == c ? "active" : "";
+        var accion      = ViewContext.RouteData.Values["action"]?.ToString();
+        string Activo(string c, string? a = null) =>
+            controlador == c && (a == null || accion == a) ? "active" : "";
+        bool esCoordinador = User.IsInRole("Coordinador");
+        bool esDocente     = User.IsInRole("Docente");
     }
 
     @if (User.Identity != null && User.Identity.IsAuthenticated)
     {
         <div class="app-page">
             <aside class="sidebar-unilife">
-                <div class="logo-unilife">🛡 UniLife</div>
-
-                <a class="menu-link @Activo("Home")" asp-controller="Home" asp-action="Index">⌂ Inicio</a>
-                <a class="menu-link @Activo("Cursos")" asp-controller="Cursos" asp-action="Index">☑ Cursos</a>
-                <a class="menu-link @Activo("Lugares")" asp-controller="Lugares" asp-action="Index">⌖ Lugares</a>
-                <a class="menu-link @Activo("Eventos")" asp-controller="Eventos" asp-action="Index">▣ Eventos</a>
-                <a class="menu-link @Activo("Account")" asp-controller="Account" asp-action="Perfil">♙ Perfil</a>
-                <a class="menu-link @Activo("Tareas")" asp-controller="Tareas" asp-action="Index">☑ Tareas</a>
-                <div class="sidebar-card">
-                    <strong>¡Sigue así!</strong><br />
-                    Has completado tus actividades esta semana.
+                <div class="sidebar-top">
+                    <div class="logo-unilife">
+                        <i class="bi bi-shield-fill-check"></i> UniLife
+                    </div>
+                    <button class="dark-toggle" id="darkToggle" title="Modo oscuro">
+                        <i class="bi bi-moon-fill" id="darkIcon"></i>
+                    </button>
                 </div>
 
-                <form asp-controller="Account" asp-action="Logout" method="post">
-                    <button type="submit" class="menu-link"
-                            style="background:none;border:none;width:100%;text-align:left;cursor:pointer;">
-                        ⎋ Cerrar sesión
+                @if (esCoordinador)
+                {
+                    <a class="menu-link @Activo("Coordinador", "Index")" asp-controller="Coordinador" asp-action="Index">
+                        <i class="bi bi-grid-fill"></i> Panel Admin
+                    </a>
+                    <a class="menu-link @(controlador == "Coordinador" && accion != "Index" ? "active" : "")" asp-controller="Coordinador" asp-action="Usuarios">
+                        <i class="bi bi-people-fill"></i> Usuarios
+                    </a>
+                    <a class="menu-link @Activo("Cursos")" asp-controller="Cursos" asp-action="Index">
+                        <i class="bi bi-book-fill"></i> Cursos
+                    </a>
+                    <a class="menu-link @Activo("Lugares")" asp-controller="Lugares" asp-action="Index">
+                        <i class="bi bi-geo-alt-fill"></i> Lugares
+                    </a>
+                    <a class="menu-link @Activo("Eventos")" asp-controller="Eventos" asp-action="Index">
+                        <i class="bi bi-calendar-event-fill"></i> Eventos
+                    </a>
+                }
+                else
+                {
+                    <a class="menu-link @Activo("Home")" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-house-fill"></i> Inicio
+                    </a>
+                    <a class="menu-link @Activo("Cursos")" asp-controller="Cursos" asp-action="Index">
+                        <i class="bi bi-book-fill"></i> Cursos
+                    </a>
+                    @if (!esDocente)
+                    {
+                        <a class="menu-link @Activo("Lugares")" asp-controller="Lugares" asp-action="Index">
+                            <i class="bi bi-geo-alt-fill"></i> Lugares
+                        </a>
+                    }
+                    <a class="menu-link @Activo("Eventos")" asp-controller="Eventos" asp-action="Index">
+                        <i class="bi bi-calendar-event-fill"></i> Eventos
+                    </a>
+                    <a class="menu-link @Activo("Account")" asp-controller="Account" asp-action="Perfil">
+                        <i class="bi bi-person-fill"></i> Perfil
+                        @await Component.InvokeAsync("NotifBadge")
+                    </a>
+                }
+
+                <form asp-controller="Account" asp-action="Logout" method="post" class="mt-auto">
+                    <button type="submit" class="menu-link menu-link-logout">
+                        <i class="bi bi-box-arrow-left"></i> Cerrar sesión
                     </button>
                 </form>
             </aside>
@@ -45,6 +85,16 @@
                 @RenderBody()
             </main>
         </div>
+
+        @* ── Toast de notificaciones ─────────────────── *@
+        @if (TempData["Toast"] != null)
+        {
+            <div class="toast-unilife show" id="toastGlobal">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>@TempData["Toast"]</span>
+                <button onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+            </div>
+        }
     }
     else
     {

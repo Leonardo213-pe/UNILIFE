@@ -1,56 +1,69 @@
-@model Unilife.Models.Curso
+@model Unilife.Models.CursoFormViewModel
 
 @{
     ViewData["Title"] = "Crear curso";
+    var docentes   = ViewBag.Docentes   as IList<Unilife.Models.ApplicationUser> ?? new List<Unilife.Models.ApplicationUser>();
+    var carrerasDb = ViewBag.CarrerasDb as List<Unilife.Models.CarreraRegistrada> ?? new List<Unilife.Models.CarreraRegistrada>();
+    var medicas    = carrerasDb.Where(c => c.EsMedica).Select(c => c.Nombre).ToList();
 }
 
 <h1>Crear curso</h1>
 
-<form asp-action="Create">
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
     <div class="mb-3">
         <label asp-for="Nombre" class="form-label"></label>
         <input asp-for="Nombre" class="form-control" />
         <span asp-validation-for="Nombre" class="text-danger"></span>
     </div>
-
     <div class="mb-3">
         <label asp-for="Descripcion" class="form-label"></label>
         <textarea asp-for="Descripcion" class="form-control"></textarea>
     </div>
-
     <div class="mb-3">
         <label asp-for="Carrera" class="form-label"></label>
-        <input asp-for="Carrera" class="form-control" />
+        <select asp-for="Carrera" id="createCarrera" class="form-select" required>
+            <option value="">— Selecciona una carrera —</option>
+            @foreach (var g in new[] { "Ingenierías", "Ciencias Sociales", "Ciencias Médicas" })
+            {
+                var lista = carrerasDb.Where(c => c.Grupo == g).ToList();
+                if (lista.Any())
+                {
+                    <optgroup label="@g">
+                        @foreach (var c in lista)
+                        { <option value="@c.Nombre">@c.Nombre</option> }
+                    </optgroup>
+                }
+            }
+        </select>
     </div>
-
     <div class="mb-3">
         <label asp-for="Semestre" class="form-label"></label>
-        <input asp-for="Semestre" class="form-control" />
+        <select asp-for="Semestre" id="createSemestre" class="form-select">
+            <option value="">— Semestre —</option>
+            <option value="I">I</option>
+            <option value="II">II</option>
+            <option value="III">III</option>
+            <option value="IV">IV</option>
+            <option value="V">V</option>
+            <option value="VI">VI</option>
+            <option value="VII">VII</option>
+            <option value="VIII">VIII</option>
+            <option value="IX">IX</option>
+            <option value="X">X</option>
+            <option value="XI">XI</option>
+            <option value="XII">XII</option>
+        </select>
+        <span asp-validation-for="Semestre" class="text-danger"></span>
     </div>
-
     <div class="mb-3">
-        <label asp-for="Docente" class="form-label"></label>
-        <input asp-for="Docente" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="HoraInicio" class="form-label"></label>
-        <input asp-for="HoraInicio" class="form-control" type="time" />
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="HoraFin" class="form-label"></label>
-        <input asp-for="HoraFin" class="form-control" type="time" />
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Pabellon" class="form-label"></label>
-        <input asp-for="Pabellon" class="form-control" placeholder="Ejemplo: G" />
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Aula" class="form-label"></label>
-        <input asp-for="Aula" class="form-control" placeholder="Ejemplo: 103" />
+        <label asp-for="DocenteId" class="form-label">Docente</label>
+        <select asp-for="DocenteId" class="form-select">
+            <option value="">— Sin asignar —</option>
+            @foreach (var d in docentes)
+            { <option value="@d.Id">@d.Nombre @d.Apellido</option> }
+        </select>
     </div>
 
     <button type="submit" class="btn btn-success">Guardar</button>
@@ -59,4 +72,22 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        const carrerasMedicas = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(medicas));
+
+        function ajustarSemestres(carrera) {
+            const sel = document.getElementById('createSemestre');
+            const esMedica = carrerasMedicas.includes(carrera);
+            Array.from(sel.options).forEach(o => {
+                if (o.value === 'XI' || o.value === 'XII') o.hidden = !esMedica;
+            });
+            if (!esMedica && (sel.value === 'XI' || sel.value === 'XII')) sel.value = '';
+        }
+
+        document.getElementById('createCarrera').addEventListener('change', function () {
+            ajustarSemestres(this.value);
+        });
+
+        ajustarSemestres(document.getElementById('createCarrera').value);
+    </script>
 }

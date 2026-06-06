@@ -5,7 +5,7 @@
 }
 
 <h1 class="page-title">Lugares cercanos</h1>
-<p class="page-subtitle">Descubre restaurantes, cafeterías y bibliotecas cerca de ti</p>
+<p class="page-subtitle">Descubre cafeterías, bibliotecas y zonas de estudio cerca de ti</p>
 
 <form method="get" class="mb-4">
     <input type="text" name="buscar" value="@ViewBag.Buscar" class="form-control search-box" placeholder="🔍 Buscar lugares..." />
@@ -13,9 +13,10 @@
 
 <div class="d-flex flex-wrap gap-2 mb-4">
     <a asp-action="Index" class="filter-btn active">Todos</a>
-    <a asp-action="Index" asp-route-tipo="Restaurante" class="filter-btn">🍴 Restaurantes</a>
     <a asp-action="Index" asp-route-tipo="Cafetería" class="filter-btn">☕ Cafeterías</a>
     <a asp-action="Index" asp-route-tipo="Biblioteca" class="filter-btn">📖 Bibliotecas</a>
+    <a asp-action="Index" asp-route-tipo="Coworking" class="filter-btn">💻 Coworking</a>
+    <a asp-action="Index" asp-route-tipo="Zona de estudio" class="filter-btn">📚 Zonas de estudio</a>
 </div>
 
 <div class="row g-4">
@@ -23,9 +24,9 @@
     {
         string icono = "☕";
 
-        if (item.Tipo == "Restaurante") icono = "🍴";
-        else if (item.Tipo == "Biblioteca") icono = "📖";
+        if (item.Tipo == "Biblioteca") icono = "📖";
         else if (item.Tipo == "Coworking") icono = "💻";
+        else if (item.Tipo == "Zona de estudio") icono = "📚";
 
         <div class="col-md-4">
             <div class="place-card">

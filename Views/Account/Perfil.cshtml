@@ -2,94 +2,290 @@
 
 @{
     ViewData["Title"] = "Mi perfil";
+    string iniciales = $"{(Model.Nombre.Length > 0 ? Model.Nombre[0] : ' ')}{(Model.Apellido.Length > 0 ? Model.Apellido[0] : ' ')}";
+    var horarios = Model.MisCursos
+        .SelectMany(c => c.Horarios.Select(h => new { Curso = c.Nombre, Horario = h }))
+        .OrderBy(x => x.Horario.HoraInicio)
+        .ToList();
+    var rolColor = Model.Rol switch {
+        "Coordinador" => "#6d28d9",
+        "Docente"     => "#1565c0",
+        _             => "#2e7d32"
+    };
 }
 
-<link rel="stylesheet" href="~/css/inicio.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/perfil.css" asp-append-version="true" />
 
 <div class="perfil-page">
 
-    <!-- Cabecera -->
+    @* ── Cabecera ──────────────────────────────────────── *@
     <div class="perfil-header">
-        <div class="perfil-avatar">👤</div>
+        <div class="perfil-avatar-wrap">
+            @if (!string.IsNullOrEmpty(Model.FotoPerfil))
+            {
+                <img src="@Model.FotoPerfil" alt="Foto de perfil" class="perfil-avatar-foto" />
+            }
+            else
+            {
+                <div class="perfil-avatar-iniciales">@iniciales</div>
+            }
+            <form asp-controller="Account" asp-action="SubirFoto" method="post" enctype="multipart/form-data" class="perfil-foto-form">
+                <label class="perfil-foto-btn" title="Cambiar foto">
+                    <i class="bi bi-camera-fill"></i>
+                    <input type="file" name="foto" accept="image/*" onchange="this.form.submit()" style="display:none;" />
+                </label>
+            </form>
+        </div>
         <div class="perfil-info">
             <h1>@Model.Nombre @Model.Apellido</h1>
-            <div class="perfil-meta">✉️ @Model.Email</div>
-            <div class="perfil-meta">🎓 @(string.IsNullOrEmpty(Model.Carrera) ? "Carrera no registrada" : Model.Carrera) · @Model.Rol</div>
+            <div class="perfil-meta"><i class="bi bi-envelope-fill"></i> @Model.Email</div>
+            @if (!string.IsNullOrEmpty(Model.Carrera))
+            {
+                <div class="perfil-meta"><i class="bi bi-mortarboard-fill"></i> @Model.Carrera</div>
+            }
+            <span class="perfil-rol-badge" style="background:@rolColor;">@Model.Rol</span>
         </div>
-        <div class="perfil-settings">⚙️</div>
-    </div>
-
-    <!-- Estadísticas reales -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-icon icon-pink">✓</div>
-            <div>
-                <div class="stat-number">@Model.Completadas</div>
-                <div class="stat-label">Tareas completadas</div>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon icon-amber">🏆</div>
-            <div>
-                <div class="stat-number">@Model.Puntos</div>
-                <div class="stat-label">Puntos totales</div>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon icon-orange">📌</div>
-            <div>
-                <div class="stat-number">@Model.Pendientes</div>
-                <div class="stat-label">Pendientes</div>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="progress-ring" style="background: conic-gradient(#a3001d @(Model.Progreso)%, #f0d6db 0);">
-                <span>@Model.Progreso%</span>
-            </div>
-            <div>
-                <div class="stat-number">@Model.Progreso%</div>
-                <div class="stat-label">Progreso</div>
-            </div>
+        <div class="perfil-settings">
+            <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarPerfil">
+                <i class="bi bi-gear-fill"></i> Editar perfil
+            </button>
         </div>
     </div>
 
-    <!-- Mis cursos -->
-    <div class="dash-card" style="margin-bottom:24px;">
-        <div class="dash-head"><h3>📖 Mis cursos</h3></div>
+    @* ══════════════════════════════════════════════════ *@
+    @* COORDINADOR                                        *@
+    @* ══════════════════════════════════════════════════ *@
+    @if (Model.EsCoordinador)
+    {
+        <div class="perfil-section-title">Resumen del sistema</div>
+        <div class="perfil-stats-grid">
+            <div class="perfil-stat-card" style="--accent:#a3001d;">
+                <div class="psc-icon">👥</div>
+                <div class="psc-num">@Model.TotalUsuarios</div>
+                <div class="psc-label">Total usuarios</div>
+            </div>
+            <div class="perfil-stat-card" style="--accent:#1565c0;">
+                <div class="psc-icon">👨‍🏫</div>
+                <div class="psc-num">@Model.TotalDocentes</div>
+                <div class="psc-label">Docentes</div>
+            </div>
+            <div class="perfil-stat-card" style="--accent:#2e7d32;">
+                <div class="psc-icon">🎓</div>
+                <div class="psc-num">@Model.TotalAlumnos</div>
+                <div class="psc-label">Alumnos</div>
+            </div>
+            <div class="perfil-stat-card" style="--accent:#e65100;">
+                <div class="psc-icon">📚</div>
+                <div class="psc-num">@Model.TotalCursos</div>
+                <div class="psc-label">Cursos</div>
+            </div>
+            <div class="perfil-stat-card" style="--accent:#6d28d9;">
+                <div class="psc-icon">🏛️</div>
+                <div class="psc-num">@Model.TotalCarreras</div>
+                <div class="psc-label">Carreras</div>
+            </div>
+            <div class="perfil-stat-card" style="--accent:#0277bd;">
+                <div class="psc-icon">📅</div>
+                <div class="psc-num">@Model.TotalEventos</div>
+                <div class="psc-label">Eventos</div>
+            </div>
+        </div>
 
-        @if (Model.Cursos.Any())
+        <div class="perfil-section-title" style="margin-top:28px;">Accesos rápidos</div>
+        <div class="perfil-accesos">
+            <a asp-controller="Coordinador" asp-action="Usuarios" class="perfil-acceso-card">
+                <span class="pa-icon" style="background:#a3001d;">👤</span>
+                <span>Gestionar usuarios</span>
+            </a>
+            <a asp-controller="Cursos" asp-action="Index" class="perfil-acceso-card">
+                <span class="pa-icon" style="background:#1565c0;">📚</span>
+                <span>Ver cursos</span>
+            </a>
+            <a asp-controller="Eventos" asp-action="Index" class="perfil-acceso-card">
+                <span class="pa-icon" style="background:#2e7d32;">📅</span>
+                <span>Ver eventos</span>
+            </a>
+            <a asp-controller="Coordinador" asp-action="Index" class="perfil-acceso-card">
+                <span class="pa-icon" style="background:#6d28d9;">⚙️</span>
+                <span>Panel admin</span>
+            </a>
+        </div>
+    }
+
+    @* ══════════════════════════════════════════════════ *@
+    @* DOCENTE                                            *@
+    @* ══════════════════════════════════════════════════ *@
+    else if (Model.EsDocente)
+    {
+        @* Stats rápidos *@
+        <div class="perfil-stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+            <div class="perfil-stat-card" style="--accent:#a3001d;">
+                <div class="psc-icon">📚</div>
+                <div class="psc-num">@Model.MisCursos.Count</div>
+                <div class="psc-label">Cursos activos</div>
+            </div>
+            <div class="perfil-stat-card" style="--accent:#1565c0;">
+                <div class="psc-icon">👥</div>
+                <div class="psc-num">@Model.MisCursos.Sum(c => c.Participantes.Count)</div>
+                <div class="psc-label">Total alumnos</div>
+            </div>
+            <div class="perfil-stat-card" style="--accent:#2e7d32;">
+                <div class="psc-icon">🏛️</div>
+                <div class="psc-num">@Model.MisCursos.Select(c => c.Carrera).Distinct().Count()</div>
+                <div class="psc-label">Carreras</div>
+            </div>
+        </div>
+
+        @* Mis cursos *@
+        <div class="perfil-section-title">Mis cursos</div>
+        @if (!Model.MisCursos.Any())
         {
-            <div class="cursos-grid">
-                @foreach (var curso in Model.Cursos)
-                {
-                    <div class="curso-chip">@curso</div>
-                }
-            </div>
+            <p class="perfil-empty">No tienes cursos asignados aún.</p>
         }
         else
         {
-            <p class="item-sub">Aún no hay cursos registrados.</p>
+            <div class="perfil-cursos-lista">
+                @foreach (var c in Model.MisCursos)
+                {
+                    <a href="@Url.Action("Details", "Cursos", new { id = c.Id })" class="perfil-curso-row">
+                        <div class="pcr-left">
+                            <div class="pcr-nombre">@c.Nombre</div>
+                            <div class="pcr-meta">@c.Carrera · Semestre @c.Semestre</div>
+                        </div>
+                        <div class="pcr-right">
+                            <span class="pcr-badge">👥 @c.Participantes.Count alumnos</span>
+                        </div>
+                    </a>
+                }
+            </div>
         }
+
+        @* Próximas clases *@
+        @if (horarios.Any())
+        {
+            <div class="perfil-section-title" style="margin-top:24px;">Horario de clases</div>
+            <div class="perfil-horarios">
+                @foreach (var x in horarios)
+                {
+                    <div class="perfil-horario-item">
+                        <span class="phi-tipo @(x.Horario.Tipo == "Práctico" ? "phi-prac" : "")">@x.Horario.Tipo</span>
+                        <span class="phi-curso">@x.Curso</span>
+                        <span class="phi-dia">@x.Horario.Dia</span>
+                        <span class="phi-hora">@x.Horario.HoraInicio.ToString(@"hh\:mm") – @x.Horario.HoraFin.ToString(@"hh\:mm")</span>
+                        <span class="phi-aula">🏫 @x.Horario.CodigoAula</span>
+                    </div>
+                }
+            </div>
+        }
+    }
+
+    @* ══════════════════════════════════════════════════ *@
+    @* ALUMNO                                             *@
+    @* ══════════════════════════════════════════════════ *@
+    else
+    {
+        @* Cursos inscritos *@
+        <div class="perfil-section-title">Mis cursos inscritos</div>
+        @if (!Model.CursosInscritos.Any())
+        {
+            <p class="perfil-empty">Aún no estás inscrito en ningún curso.</p>
+        }
+        else
+        {
+            <div class="perfil-cursos-lista">
+                @foreach (var c in Model.CursosInscritos)
+                {
+                    <a href="@Url.Action("Details", "Cursos", new { id = c.Id })" class="perfil-curso-row">
+                        <div class="pcr-left">
+                            <div class="pcr-nombre">@c.Nombre</div>
+                            <div class="pcr-meta">
+                                @c.Carrera · Semestre @c.Semestre
+                                @if (c.DocenteUser != null)
+                                { <span> · @c.DocenteUser.Nombre @c.DocenteUser.Apellido</span> }
+                            </div>
+                        </div>
+                        <div class="pcr-right">
+                            <span class="pcr-badge">Sem. @c.Semestre</span>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+
+        @* Tareas próximas *@
+        @if (Model.TareasProximas.Any())
+        {
+            <div class="perfil-section-title" style="margin-top:24px;">Tareas próximas a vencer</div>
+            <div class="perfil-tareas-lista">
+                @foreach (var t in Model.TareasProximas)
+                {
+                    bool urgente = t.FechaEntrega <= DateTime.Today.AddDays(2);
+                    <div class="perfil-tarea-row @(urgente ? "urgente" : "")">
+                        <span class="ptr-titulo">@t.Titulo</span>
+                        <span class="ptr-fecha">📅 @t.FechaEntrega.ToString("dd/MM/yyyy")</span>
+                    </div>
+                }
+            </div>
+        }
+    }
+
+</div>
+
+@if (TempData["ErrorPerfil"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        @TempData["ErrorPerfil"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
+}
 
-    <!-- Insignias y logros -->
-    <div class="dash-card">
-        <div class="dash-head"><h3>🏅 Insignias y logros</h3></div>
-
-        <div class="insignias-grid">
-            @foreach (var ins in Model.Insignias)
-            {
-                <div class="insignia-card @(ins.Desbloqueada ? "" : "locked")">
-                    <div class="insignia-emoji">@ins.Emoji</div>
-                    <h5>@ins.Titulo</h5>
-                    <p>@ins.Descripcion</p>
+@* ── Modal Editar Perfil ───────────────────────────── *@
+<div class="modal fade" id="modalEditarPerfil" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar perfil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-controller="Account" asp-action="EditarPerfil" method="post">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nombre</label>
+                            <input name="Nombre" class="form-control" value="@Model.Nombre" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Apellido</label>
+                            <input name="Apellido" class="form-control" value="@Model.Apellido" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Correo electrónico</label>
+                            <input name="Email" type="email" class="form-control" value="@Model.Email" required />
+                        </div>
+                        <div class="col-12">
+                            <hr class="my-1" />
+                            <p class="text-muted small mb-2">Para cambiar la contraseña completa los siguientes campos:</p>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Contraseña actual</label>
+                            <input name="ContrasenaActual" type="password" class="form-control"
+                                   placeholder="Tu contraseña actual" autocomplete="current-password" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">
+                                Nueva contraseña
+                                <span class="text-muted fw-normal small">(mínimo 6 caracteres)</span>
+                            </label>
+                            <input name="NuevaContrasena" type="password" class="form-control"
+                                   placeholder="Nueva contraseña" autocomplete="new-password" />
+                        </div>
+                    </div>
                 </div>
-            }
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Guardar cambios</button>
+                </div>
+            </form>
         </div>
     </div>
-
 </div>

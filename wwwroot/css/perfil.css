@@ -1,8 +1,7 @@
-/* ===== Perfil ===== */
+/* ── Página de perfil ─────────────────────────────── */
+.perfil-page { animation: dashFade 0.4s ease; }
 
-.perfil-page { animation: dashFade 0.5s ease; }
-
-/* Cabecera guinda */
+/* ── Cabecera ─────────────────────────────────────── */
 .perfil-header {
     display: flex;
     align-items: center;
@@ -11,127 +10,218 @@
     color: #fff;
     border-radius: 18px;
     padding: 28px 32px;
-    box-shadow: 0 10px 28px rgba(109, 0, 20, 0.35);
+    box-shadow: 0 10px 28px rgba(109,0,20,.30);
     position: relative;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
 }
 
-.perfil-avatar {
-    width: 92px;
-    height: 92px;
-    border-radius: 50%;
-    background: #fff;
-    color: #a3001d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 44px;
+.perfil-avatar-wrap {
+    position: relative;
+    width: 88px; height: 88px;
     flex-shrink: 0;
 }
 
-.perfil-info h1 {
-    font-size: 30px;
-    font-weight: 800;
-    margin: 0 0 8px;
+.perfil-avatar-iniciales {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.20);
+    border: 3px solid rgba(255,255,255,.50);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; font-weight: 800; color: #fff;
+    letter-spacing: 1px;
 }
 
+.perfil-avatar-foto {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255,255,255,.60);
+}
+
+.perfil-foto-form { position: static; }
+
+.perfil-foto-btn {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    color: #a3001d;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.25);
+    border: 2px solid rgba(255,255,255,.8);
+    transition: background .15s;
+}
+.perfil-foto-btn:hover { background: #fee2e2; }
+
+.perfil-info { flex: 1; min-width: 0; }
+.perfil-info h1 { font-size: 1.6rem; font-weight: 800; margin: 0 0 6px; }
+
 .perfil-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 15px;
-    opacity: 0.95;
-    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: .9rem; opacity: .88; margin-bottom: 4px;
+}
+
+.perfil-rol-badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #fff;
 }
 
 .perfil-settings {
-    position: absolute;
-    top: 24px;
-    right: 28px;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.18);
+    position: absolute; top: 20px; right: 24px;
+}
+
+/* ── Títulos de sección ───────────────────────────── */
+.perfil-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+/* ── Grid de stats ────────────────────────────────── */
+.perfil-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+}
+
+.perfil-stat-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px 14px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    border-top: 3px solid var(--accent, #a3001d);
+    transition: transform .15s;
+}
+.perfil-stat-card:hover { transform: translateY(-2px); }
+
+.psc-icon { font-size: 1.6rem; margin-bottom: 8px; }
+.psc-num  { font-size: 1.8rem; font-weight: 800; color: var(--accent, #a3001d); line-height: 1; }
+.psc-label { font-size: .78rem; color: #777; margin-top: 4px; }
+
+/* ── Accesos rápidos (Coordinador) ────────────────── */
+.perfil-accesos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 8px;
+}
+
+.perfil-acceso-card {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 20px;
-}
-
-/* Mis cursos */
-.cursos-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
     gap: 14px;
-}
-
-.curso-chip {
-    border: 1px solid #e5e7eb;
+    background: #fff;
     border-radius: 12px;
     padding: 16px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    text-decoration: none;
+    color: #333;
     font-weight: 600;
-    color: #1f2937;
-    background: #fff;
-    transition: 0.15s;
+    font-size: .9rem;
+    transition: transform .15s, box-shadow .15s;
+    border: 1px solid #f0f0f0;
+}
+.perfil-acceso-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.10); color: #333; }
+
+.pa-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
 }
 
-.curso-chip:hover {
-    border-color: #a3001d;
-    color: #a3001d;
-    transform: translateY(-2px);
+/* ── Lista de cursos ──────────────────────────────── */
+.perfil-cursos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
-/* Insignias */
-.insignias-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-}
-
-.insignia-card {
-    border: 1px solid #eef0f3;
-    border-radius: 16px;
-    padding: 22px 16px;
-    text-align: center;
-    background: #fff;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-}
-
-.insignia-emoji {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto 14px;
-    border-radius: 18px;
+.perfil-curso-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 30px;
-    background: linear-gradient(135deg, #ff7b00, #ff0054);
+    justify-content: space-between;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 14px 18px;
+    text-decoration: none;
+    color: #222;
+    transition: border-color .15s, box-shadow .15s;
+}
+.perfil-curso-row:hover { border-color: #a3001d; box-shadow: 0 2px 10px rgba(163,0,29,.08); color: #222; }
+
+.pcr-nombre { font-weight: 600; font-size: .95rem; }
+.pcr-meta   { font-size: .82rem; color: #777; margin-top: 3px; }
+.pcr-badge  {
+    background: #f5f5f5; border-radius: 20px;
+    padding: 4px 12px; font-size: .8rem; color: #555;
+    white-space: nowrap;
 }
 
-.insignia-card h5 {
-    font-weight: 800;
-    color: #111827;
-    margin: 0 0 4px;
-    font-size: 15px;
+/* ── Horarios (Docente) ───────────────────────────── */
+.perfil-horarios {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 8px;
 }
-
-.insignia-card p {
-    color: #6b7280;
-    font-size: 13px;
-    margin: 0;
+.perfil-horario-item {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: #fff; border: 1px solid #eee; border-radius: 10px;
+    padding: 12px 16px; font-size: .88rem;
 }
+.phi-tipo {
+    background: #a3001d; color: #fff;
+    border-radius: 4px; padding: 2px 10px;
+    font-size: .75rem; font-weight: 700; white-space: nowrap;
+}
+.phi-prac { background: #2e7d32; }
+.phi-curso { font-weight: 600; flex: 1; min-width: 120px; }
+.phi-dia   { color: #555; }
+.phi-hora  { color: #333; font-weight: 600; }
+.phi-aula  { color: #777; }
 
-/* Insignia bloqueada (aún no lograda) */
-.insignia-card.locked { opacity: 0.45; filter: grayscale(0.8); }
-.insignia-card.locked .insignia-emoji { background: #9ca3af; }
+/* ── Tareas próximas (Alumno) ─────────────────────── */
+.perfil-tareas-lista { display: flex; flex-direction: column; gap: 8px; }
+.perfil-tarea-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fff; border: 1px solid #eee; border-radius: 10px;
+    padding: 12px 18px;
+}
+.perfil-tarea-row.urgente { border-left: 3px solid #c62828; }
+.ptr-titulo { font-weight: 600; font-size: .93rem; }
+.ptr-fecha  { font-size: .82rem; color: #888; }
+.perfil-tarea-row.urgente .ptr-fecha { color: #c62828; font-weight: 600; }
 
+/* ── Vacío ────────────────────────────────────────── */
+.perfil-empty { color: #aaa; font-size: .9rem; padding: 16px 0; }
+
+/* ── Responsive ───────────────────────────────────── */
 @media (max-width: 1100px) {
-    .cursos-grid, .insignias-grid { grid-template-columns: repeat(2, 1fr); }
+    .perfil-stats-grid { grid-template-columns: repeat(3,1fr); }
+    .perfil-accesos    { grid-template-columns: repeat(2,1fr); }
 }
-
-@media (max-width: 600px) {
-    .perfil-header { flex-direction: column; text-align: center; }
-    .perfil-settings { position: static; margin-top: 12px; }
-    .cursos-grid, .insignias-grid { grid-template-columns: 1fr; }
+@media (max-width: 700px) {
+    .perfil-header { padding: 20px; gap: 16px; }
+    .perfil-info h1 { font-size: 1.2rem; }
+    .perfil-stats-grid { grid-template-columns: repeat(2,1fr); }
+    .perfil-accesos    { grid-template-columns: 1fr 1fr; }
+    .perfil-settings   { position: static; margin-top: 8px; }
 }

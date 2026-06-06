@@ -8,5 +8,6 @@ namespace Unilife.Models
         public string Apellido { get; set; } = string.Empty;
 
         public string? Carrera { get; set; }
+        public string? FotoPerfil { get; set; }
     }
 }

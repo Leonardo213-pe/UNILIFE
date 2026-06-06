@@ -1,145 +1,147 @@
-﻿@model Unilife.Models.DashboardViewModel
+@model Unilife.Models.DashboardViewModel
 
 @{
     ViewData["Title"] = "Inicio";
-
     var cultura = new System.Globalization.CultureInfo("es-ES");
-    var fecha = DateTime.Now.ToString("dddd, dd 'de' MMMM, yyyy", cultura);
+    var fecha   = DateTime.Now.ToString("dddd, dd 'de' MMMM, yyyy", cultura);
     fecha = char.ToUpper(fecha[0]) + fecha.Substring(1);
+    var hoy = DateTime.Today;
+    var tareasUrgentes = Model.ProximasTareas
+        .Where(t => t.FechaEntrega >= hoy && t.FechaEntrega <= hoy.AddDays(7))
+        .OrderBy(t => t.FechaEntrega)
+        .ToList();
+    var diasSemana = new[] { "Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado" };
+    var diaHoy = diasSemana[(int)hoy.DayOfWeek];
+    var clasesHoy = Model.Horario
+        .SelectMany(c => c.Horarios
+            .Where(h => h.Dia == diaHoy)
+            .Select(h => new { Curso = c.Nombre, Tipo = h.Tipo, HoraInicio = h.HoraInicio, HoraFin = h.HoraFin, Aula = h.CodigoAula }))
+        .OrderBy(x => x.HoraInicio)
+        .ToList();
 }
 
 <link rel="stylesheet" href="~/css/inicio.css" asp-append-version="true" />
 
 <div class="inicio-dash">
 
-    <!-- Saludo + chip universidad -->
+    @* ── Barra superior ─────────────────────────────────── *@
     <div class="inicio-topbar">
         <div class="inicio-saludo">
             <h1>Hola, @Model.Nombre 👋</h1>
             <p>@fecha</p>
         </div>
-
         <div class="usmp-pill">
-            <span class="usmp-brand">🛡 USMP</span>
-            <span class="usmp-menu">☰ Menú</span>
+            <span class="usmp-brand">🛡 UniLife</span>
+            @if (Model.EsDocente)
+            {
+                <span class="usmp-menu">👨‍🏫 Docente</span>
+            }
         </div>
     </div>
 
-    <!-- Estadísticas reales -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-icon icon-pink">✓</div>
-            <div>
-                <div class="stat-number">@Model.Completadas</div>
-                <div class="stat-label">Completadas</div>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon icon-amber">📌</div>
-            <div>
-                <div class="stat-number">@Model.Pendientes</div>
-                <div class="stat-label">Pendientes</div>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon icon-orange">📅</div>
-            <div>
-                <div class="stat-number">@Model.EventosProximos</div>
-                <div class="stat-label">Eventos próximos</div>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="progress-ring" style="background: conic-gradient(#a3001d @(Model.Progreso)%, #f0d6db 0);">
-                <span>@Model.Progreso%</span>
-            </div>
-            <div>
-                <div class="stat-number">@Model.Progreso%</div>
-                <div class="stat-label">Progreso</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Rejilla de 3 columnas -->
-    <div class="dash-grid">
-
-        <!-- Próximas tareas (reales) -->
-        <div class="dash-card">
-            <div class="dash-head">
-                <h3>🕒 Próximas tareas</h3>
-                <a asp-controller="Tareas" asp-action="Index" class="ver-todas">Ver todas</a>
-            </div>
-
-            @if (Model.ProximasTareas.Any())
-            {
-                foreach (var t in Model.ProximasTareas)
-                {
-                    string clase = t.Prioridad == "Alta" ? "item-yellow"
-                                 : t.Prioridad == "Media" ? "item-blue" : "item-green";
-
-                    <div class="item @clase">
-                        <div class="item-emoji">📄</div>
-                        <div>
-                            <div class="item-title">@t.Titulo</div>
-                            <div class="item-sub">@t.Curso · @t.FechaEntrega.ToString("dd MMM", cultura)</div>
-                        </div>
-                    </div>
-                }
-            }
-            else
-            {
-                <p class="item-sub">No tienes tareas pendientes. ¡Bien hecho!</p>
-            }
-        </div>
-
-        <!-- Horario (cursos reales) -->
-        <div class="dash-card">
-            <div class="dash-head">
-                <h3>📖 Horario</h3>
-            </div>
-
-            @if (Model.Horario.Any())
-            {
-                foreach (var c in Model.Horario)
-                {
-                    <div class="item item-purple">
-                        <span class="hora-chip">@c.HoraInicio.ToString(@"hh\:mm")</span>
-                        <div class="item-emoji">📘</div>
-                        <div>
-                            <div class="item-title">@c.Nombre</div>
-                            <div class="item-sub">Aula @c.Aula · @c.Docente</div>
-                        </div>
-                    </div>
-                }
-            }
-            else
-            {
-                <p class="item-sub">Aún no hay cursos registrados.</p>
-            }
-        </div>
-
-        <!-- Recordatorios (eventos reales) -->
-        <div>
-            <div class="dash-card">
-                <div class="dash-head">
-                    <h3>🔔 Recordatorios</h3>
+    @* ════════════════════════════════════════════════════ *@
+    @*  DOCENTE                                             *@
+    @* ════════════════════════════════════════════════════ *@
+    @if (Model.EsDocente)
+    {
+        <div class="stats-row stats-3">
+            <div class="stat-card">
+                <div class="stat-icon icon-red">📚</div>
+                <div>
+                    <div class="stat-number">@Model.MisCursos.Count</div>
+                    <div class="stat-label">Mis cursos</div>
                 </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-blue">👥</div>
+                <div>
+                    <div class="stat-number">@Model.TotalAlumnos</div>
+                    <div class="stat-label">Total alumnos</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-orange">📅</div>
+                <div>
+                    <div class="stat-number">@Model.EventosProximos</div>
+                    <div class="stat-label">Eventos próximos</div>
+                </div>
+            </div>
+        </div>
 
-                @if (Model.Recordatorios.Any())
-                {
-                    foreach (var e in Model.Recordatorios)
+        @* Horario ancho *@
+        <div class="dash-card dash-full">
+            <div class="dash-head">
+                <h3>🕒 Clases de hoy</h3>
+                <span class="dia-hoy-badge">@diaHoy</span>
+            </div>
+            @if (clasesHoy.Any())
+            {
+                <div class="horario-scroll">
+                    @foreach (var cl in clasesHoy)
                     {
-                        <div class="item item-blue">
-                            <div class="item-emoji">📅</div>
-                            <div>
-                                <div class="item-title">@e.Titulo</div>
-                                <div class="item-sub">@e.Fecha.ToString("dd MMM", cultura) · @e.Lugar</div>
-                                <span class="badge-pill badge-event">@e.TipoEvento</span>
-                            </div>
+                        <div class="horario-card @(cl.Tipo == "Práctico" ? "hc-prac" : "hc-teo")">
+                            <div class="hc-hora">@cl.HoraInicio.ToString(@"hh\:mm") – @cl.HoraFin.ToString(@"hh\:mm")</div>
+                            <div class="hc-nombre">@cl.Curso</div>
+                            <div class="hc-meta">🏫 @cl.Aula</div>
+                            <span class="hc-tipo">@cl.Tipo</span>
                         </div>
                     }
+                </div>
+            }
+            else
+            {
+                <div class="horario-vacio">Sin clases hoy 🎉</div>
+            }
+        </div>
+
+        @* Cursos + Eventos *@
+        <div class="dash-grid">
+
+            <div class="dash-card">
+                <div class="dash-head">
+                    <h3>📚 Mis cursos</h3>
+                    <a asp-controller="Cursos" asp-action="Index" class="ver-todas">Ver todos</a>
+                </div>
+                <div class="cursos-scroll">
+                @if (Model.MisCursos.Any())
+                {
+                    foreach (var c in Model.MisCursos.Take(5))
+                    {
+                        int alumnos = c.Participantes?.Count ?? 0;
+                        <a href="@Url.Action("Details", "Cursos", new { id = c.Id })" class="curso-item">
+                            <div class="ci-icon">📘</div>
+                            <div class="ci-body">
+                                <div class="ci-nombre">@c.Nombre</div>
+                                <div class="ci-meta">@c.Carrera &middot; Sem. @c.Semestre</div>
+                            </div>
+                            <span class="ci-badge">@alumnos alumnos</span>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <p class="item-sub">Aún no tienes cursos asignados.</p>
+                }
+                </div>
+            </div>
+
+            <div class="dash-card">
+                <div class="dash-head"><h3>🔔 Próximos eventos</h3></div>
+                @if (Model.Recordatorios.Any())
+                {
+                    <div class="eventos-scroll">
+                        @foreach (var e in Model.Recordatorios)
+                        {
+                            <div class="item item-purple">
+                                <div class="item-emoji">📅</div>
+                                <div>
+                                    <div class="item-title">@e.Titulo</div>
+                                    <div class="item-sub">@e.Fecha.ToString("dd MMM", cultura) · @e.Lugar</div>
+                                </div>
+                                <span class="badge-pill badge-event">@e.TipoEvento</span>
+                            </div>
+                        }
+                    </div>
                 }
                 else
                 {
@@ -147,13 +149,127 @@
                 }
             </div>
 
-            <div class="dash-card reco-card">
-                <div class="reco-eyebrow">📍 Recomendación del día</div>
-                <h4>Técnica Pomodoro para estudiar</h4>
-                <p>Divide tu estudio en bloques de 25 minutos con descansos cortos.</p>
-                <a asp-controller="Eventos" asp-action="Index" class="btn-reco">Ver eventos</a>
+        </div>
+    }
+
+    @* ════════════════════════════════════════════════════ *@
+    @*  ALUMNO                                              *@
+    @* ════════════════════════════════════════════════════ *@
+    else
+    {
+        <div class="stats-row stats-3">
+            <div class="stat-card">
+                <div class="stat-icon icon-red">📌</div>
+                <div>
+                    <div class="stat-number">@Model.Pendientes</div>
+                    <div class="stat-label">Tareas pendientes</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-green">✓</div>
+                <div>
+                    <div class="stat-number">@Model.Completadas</div>
+                    <div class="stat-label">Completadas</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-orange">📅</div>
+                <div>
+                    <div class="stat-number">@Model.EventosProximos</div>
+                    <div class="stat-label">Eventos próximos</div>
+                </div>
             </div>
         </div>
 
-    </div>
+        @* Horario ancho *@
+        <div class="dash-card dash-full">
+            <div class="dash-head">
+                <h3>📖 Clases de hoy</h3>
+                <span class="dia-hoy-badge">@diaHoy</span>
+            </div>
+            @if (clasesHoy.Any())
+            {
+                <div class="horario-scroll">
+                    @foreach (var cl in clasesHoy)
+                    {
+                        <div class="horario-card @(cl.Tipo == "Práctico" ? "hc-prac" : "hc-teo")">
+                            <div class="hc-hora">@cl.HoraInicio.ToString(@"hh\:mm") – @cl.HoraFin.ToString(@"hh\:mm")</div>
+                            <div class="hc-nombre">@cl.Curso</div>
+                            <div class="hc-meta">🏫 @cl.Aula</div>
+                            <span class="hc-tipo">@cl.Tipo</span>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="horario-vacio">Sin clases hoy 🎉</div>
+            }
+        </div>
+
+        @* Mis cursos + Eventos *@
+        <div class="dash-grid">
+
+            <div class="dash-card">
+                <div class="dash-head">
+                    <h3>📚 Mis cursos</h3>
+                    <a asp-controller="Cursos" asp-action="Index" class="ver-todas">Ver todos</a>
+                </div>
+                <div class="cursos-scroll">
+                @if (Model.MisCursos.Any())
+                {
+                    foreach (var c in Model.MisCursos.Take(6))
+                    {
+                        <a href="@Url.Action("Details", "Cursos", new { id = c.Id })" class="curso-item">
+                            <div class="ci-icon">📘</div>
+                            <div class="ci-body">
+                                <div class="ci-nombre">@c.Nombre</div>
+                                <div class="ci-meta">
+                                    @c.Carrera &middot; Sem. @c.Semestre
+                                    @if (c.DocenteUser != null)
+                                    {
+                                        <span> &middot; @c.DocenteUser.Nombre @c.DocenteUser.Apellido</span>
+                                    }
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state-mini">
+                        <span>📭</span>
+                        <p>No estás inscrito en ningún curso aún.</p>
+                    </div>
+                }
+                </div>
+            </div>
+
+            <div class="dash-card">
+                <div class="dash-head"><h3>🔔 Próximos eventos</h3></div>
+                @if (Model.Recordatorios.Any())
+                {
+                    <div class="eventos-scroll">
+                        @foreach (var e in Model.Recordatorios)
+                        {
+                            <div class="item item-blue">
+                                <div class="item-emoji">📅</div>
+                                <div>
+                                    <div class="item-title">@e.Titulo</div>
+                                    <div class="item-sub">@e.Fecha.ToString("dd MMM", cultura) · @e.Lugar</div>
+                                </div>
+                                <span class="badge-pill badge-event">@e.TipoEvento</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="item-sub">No hay eventos próximos.</p>
+                }
+            </div>
+
+        </div>
+    }
+
 </div>

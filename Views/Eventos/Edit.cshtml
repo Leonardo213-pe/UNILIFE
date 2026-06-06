@@ -1,23 +1,94 @@
 @model Unilife.Models.Evento
 
+@{
+    ViewData["Title"] = "Editar Evento";
+}
+
 <h2>Editar Evento</h2>
 
 <form asp-action="Edit">
     <input type="hidden" asp-for="Id" />
 
-    <input asp-for="Titulo" class="form-control" />
-    <input asp-for="Descripcion" class="form-control" />
-    <input asp-for="Fecha" type="date" class="form-control" />
-    <input asp-for="Hora" type="time" class="form-control" />
-    <input asp-for="Lugar" class="form-control" />
+    <div class="form-group mb-3">
+        <label>Título</label>
+        <input asp-for="Titulo" class="form-control" />
+    </div>
 
-    <select asp-for="TipoEvento" class="form-control">
-        <option value="General">General</option>
-        <option value="Carrera">Por carrera</option>
-    </select>
+    <div class="form-group mb-3">
+        <label>Descripción</label>
+        <textarea asp-for="Descripcion" class="form-control"></textarea>
+    </div>
 
-    <input asp-for="CarreraId" class="form-control" />
+    <div class="form-group mb-3">
+        <label>Fecha</label>
+        <input asp-for="Fecha" type="date" class="form-control" />
+    </div>
 
-    <br />
+    <div class="form-group mb-3">
+        <label>Hora</label>
+        <input asp-for="Hora" type="time" class="form-control" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label>Lugar</label>
+        <input asp-for="Lugar" class="form-control" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="TipoEvento" class="form-label">Tipo de evento</label>
+        <select asp-for="TipoEvento" class="form-select">
+            <option value="Charla">Charla</option>
+            <option value="Taller">Taller</option>
+            <option value="Hackathon">Hackathon</option>
+            <option value="Seminario">Seminario</option>
+            <option value="Cultural">Cultural</option>
+        </select>
+    </div>
+
+    <div class="form-group mb-3">
+        <div class="form-check">
+            <input asp-for="EsGeneral" class="form-check-input" type="checkbox" id="esGeneral" />
+            <label class="form-check-label" for="esGeneral">
+                Evento general (visible para todas las carreras)
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group mb-3" id="carreraGroup">
+        <label asp-for="Carrera" class="form-label">Carrera</label>
+        <select asp-for="Carrera" class="form-select">
+            <option value="">— Selecciona una carrera —</option>
+            <optgroup label="Ingenierías">
+                @foreach (var c in Unilife.Models.Carreras.Ingenierias)
+                {
+                    <option value="@c" selected="@(Model.Carrera == c)">@c</option>
+                }
+            </optgroup>
+            <optgroup label="Ciencias Sociales">
+                @foreach (var c in Unilife.Models.Carreras.CienciasSociales)
+                {
+                    <option value="@c" selected="@(Model.Carrera == c)">@c</option>
+                }
+            </optgroup>
+            <optgroup label="Ciencias Médicas">
+                @foreach (var c in Unilife.Models.Carreras.CienciasMedicas)
+                {
+                    <option value="@c" selected="@(Model.Carrera == c)">@c</option>
+                }
+            </optgroup>
+        </select>
+    </div>
+
     <button type="submit" class="btn btn-warning">Actualizar</button>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
 </form>
+
+@section Scripts {
+    <script>
+        const chk = document.getElementById('esGeneral');
+        const grp = document.getElementById('carreraGroup');
+        function toggle() { grp.style.display = chk.checked ? 'none' : 'block'; }
+        chk.addEventListener('change', toggle);
+        toggle();
+    </script>
+}

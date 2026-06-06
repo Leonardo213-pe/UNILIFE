@@ -1,290 +1,335 @@
-/* ===== Dashboard de inicio (alumno) ===== */
-
-.inicio-dash {
-    animation: dashFade 0.5s ease;
-}
+/* ── Dashboard inicio ─────────────────────────────── */
+.inicio-dash { animation: dashFade 0.4s ease; }
 
 @keyframes dashFade {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Barra superior: saludo + chip universidad */
+/* ── Topbar ───────────────────────────────────────── */
 .inicio-topbar {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 20px;
-    margin-bottom: 30px;
+    margin-bottom: 28px;
     flex-wrap: wrap;
 }
 
 .inicio-saludo h1 {
-    font-size: 34px;
+    font-size: 2rem;
     font-weight: 800;
     color: #111827;
     margin: 0;
 }
 
 .inicio-saludo p {
-    color: #374151;
+    color: #6b7280;
     margin: 4px 0 0;
-    font-size: 15px;
+    font-size: .9rem;
 }
 
 .usmp-pill {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.95);
+    background: #fff;
     border-radius: 14px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 14px rgba(0,0,0,.10);
     overflow: hidden;
     font-weight: 700;
     color: #9b001b;
 }
 
-.usmp-pill .usmp-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.usmp-pill .usmp-brand { padding: 10px 16px; }
+.usmp-pill .usmp-menu  {
     padding: 10px 16px;
+    border-left: 1px solid #f0f0f0;
+    color: #374151;
 }
 
-.usmp-pill .usmp-menu {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-left: 1px solid rgba(0, 0, 0, 0.08);
-    color: #1f2937;
-}
-
-/* ===== Tarjetas de estadísticas ===== */
+/* ── Stats ────────────────────────────────────────── */
 .stats-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-    margin-bottom: 26px;
+    gap: 16px;
+    margin-bottom: 24px;
 }
+.stats-3 { grid-template-columns: repeat(3, 1fr); }
 
 .stat-card {
     background: #fff;
     border-radius: 16px;
     padding: 20px 22px;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.10);
+    box-shadow: 0 4px 16px rgba(0,0,0,.07);
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
 .stat-icon {
-    width: 50px;
-    height: 50px;
+    width: 48px; height: 48px;
     border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
 }
 
-.icon-pink   { background: #fce7f3; color: #db2777; }
-.icon-amber  { background: #fef3c7; color: #d97706; }
-.icon-orange { background: #ffedd5; color: #ea580c; }
+.icon-red    { background: #fee2e2; color: #b91c1c; }
+.icon-blue   { background: #dbeafe; color: #1d4ed8; }
+.icon-green  { background: #dcfce7; color: #15803d; }
+.icon-orange { background: #ffedd5; color: #c2410c; }
+.icon-pink   { background: #fce7f3; color: #be185d; }
+.icon-amber  { background: #fef3c7; color: #b45309; }
 
-.stat-number {
-    font-size: 26px;
-    font-weight: 800;
-    color: #111827;
-    line-height: 1;
-}
+.stat-number { font-size: 1.6rem; font-weight: 800; color: #111827; line-height: 1; }
+.stat-label  { color: #6b7280; font-size: .82rem; margin-top: 4px; }
 
-.stat-label {
-    color: #6b7280;
-    font-size: 14px;
-    margin-top: 4px;
-}
+/* ── Card ancho completo (horario) ───────────────── */
+.dash-full { margin-bottom: 20px; }
 
-/* Anillo de progreso (conic-gradient) */
-.progress-ring {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: conic-gradient(#a3001d 92%, #f0d6db 0);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.progress-ring span {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 800;
-    color: #9b001b;
-}
-
-/* ===== Rejilla principal de 3 columnas ===== */
+/* ── Grid principal 2 columnas ────────────────────── */
 .dash-grid {
     display: grid;
-    grid-template-columns: 1.1fr 1fr 1fr;
+    grid-template-columns: 1.4fr 1fr;
     gap: 20px;
-    align-items: start;
+    align-items: stretch;
 }
 
+.dash-grid > .dash-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-grid > .dash-card .eventos-scroll,
+.dash-grid > .dash-card .cursos-scroll {
+    flex: 1;
+    overflow-y: auto;
+    max-height: none;
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb transparent;
+}
+.dash-grid > .dash-card .cursos-scroll::-webkit-scrollbar,
+.dash-grid > .dash-card .eventos-scroll::-webkit-scrollbar { width: 4px; }
+.dash-grid > .dash-card .cursos-scroll::-webkit-scrollbar-thumb,
+.dash-grid > .dash-card .eventos-scroll::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+
+/* ── Tarjeta ──────────────────────────────────────── */
 .dash-card {
     background: #fff;
-    border-radius: 18px;
+    border-radius: 16px;
     padding: 22px;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.10);
-}
-
-.dash-card + .dash-card {
-    margin-top: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.07);
 }
 
 .dash-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 
 .dash-head h3 {
-    font-size: 18px;
+    font-size: 1rem;
     font-weight: 800;
     color: #111827;
     margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
 .ver-todas {
     background: #f3f4f6;
     color: #374151;
-    border: none;
     border-radius: 20px;
-    padding: 5px 14px;
-    font-size: 13px;
+    padding: 4px 14px;
+    font-size: .8rem;
     font-weight: 600;
+    text-decoration: none;
+    transition: background .15s;
 }
+.ver-todas:hover { background: #e5e7eb; color: #111; }
 
-/* Items con acento de color a la izquierda */
+/* ── Items de lista ───────────────────────────────── */
 .item {
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin-bottom: 12px;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
     border-left: 4px solid transparent;
     display: flex;
     align-items: center;
     gap: 12px;
 }
-
 .item:last-child { margin-bottom: 0; }
 
-.item .item-emoji {
-    width: 38px;
-    height: 38px;
+/* ── Scroll vertical eventos ──────────────────────── */
+.eventos-scroll {
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb transparent;
+}
+.eventos-scroll::-webkit-scrollbar { width: 4px; }
+.eventos-scroll::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+
+.item-emoji {
+    width: 36px; height: 36px;
     border-radius: 10px;
     background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
 }
 
-.item .item-title {
-    font-weight: 700;
-    color: #111827;
-    font-size: 15px;
-}
+.item-title { font-weight: 700; color: #111827; font-size: .9rem; }
+.item-sub   { color: #6b7280; font-size: .8rem; margin-top: 2px; }
 
-.item .item-sub {
-    color: #6b7280;
-    font-size: 13px;
-    margin-top: 2px;
-}
+.item-blue   { background: #eff6ff; border-left-color: #3b82f6; }
+.item-green  { background: #f0fdf4; border-left-color: #22c55e; }
+.item-yellow { background: #fffbeb; border-left-color: #f59e0b; }
+.item-purple { background: #faf5ff; border-left-color: #a855f7; }
+.item-sub    { color: #6b7280; font-size: .8rem; }
 
-.item-blue   { background: #eef2ff; border-left-color: #4f46e5; }
-.item-green  { background: #ecfdf5; border-left-color: #059669; }
-.item-yellow { background: #fffbeb; border-left-color: #d97706; }
-.item-purple { background: #faf0ff; border-left-color: #9333ea; }
-
-/* Horario: hora a la izquierda */
+/* ── Chip de hora ─────────────────────────────────── */
 .hora-chip {
-    font-weight: 800;
-    color: #9b001b;
-    font-size: 14px;
-    width: 46px;
-    flex-shrink: 0;
+    font-weight: 800; color: #9b001b;
+    font-size: .85rem; width: 46px; flex-shrink: 0;
 }
 
-/* Recordatorios */
+/* ── Chip de días restantes ───────────────────────── */
+.dias-chip {
+    background: #f0fdf4; color: #15803d;
+    border-radius: 20px; padding: 3px 10px;
+    font-size: .75rem; font-weight: 700;
+    white-space: nowrap; flex-shrink: 0;
+}
+.dias-chip.urgente { background: #fee2e2; color: #b91c1c; }
+
+/* ── Badge de evento ──────────────────────────────── */
 .badge-pill {
     display: inline-block;
-    border-radius: 8px;
-    padding: 3px 10px;
-    font-size: 12px;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: .72rem;
     font-weight: 700;
-    margin-top: 8px;
+    flex-shrink: 0;
 }
+.badge-event { background: #ea580c; color: #fff; }
 
-.badge-attention { background: #a3001d; color: #fff; }
-.badge-event     { background: #ea580c; color: #fff; }
-
-/* Recomendación del día */
-.reco-card {
-    border: 2px solid #a3001d;
-    background: #fff;
-}
-
-.reco-card .reco-eyebrow {
-    color: #9b001b;
-    font-weight: 700;
-    font-size: 14px;
+/* ── Cursos (docente) ─────────────────────────────── */
+.curso-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 8px;
-}
-
-.reco-card h4 {
-    font-weight: 800;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid #f3f4f6;
+    text-decoration: none;
     color: #111827;
-    margin: 0 0 4px;
+    transition: color .15s;
+}
+.curso-item:last-child { border-bottom: none; }
+.curso-item:hover { color: #a3001d; }
+
+.ci-icon {
+    width: 36px; height: 36px;
+    background: #fee2e2; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+}
+.ci-body { flex: 1; min-width: 0; }
+.ci-nombre { font-weight: 700; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ci-meta   { font-size: .78rem; color: #6b7280; margin-top: 2px; }
+.ci-badge  {
+    background: #f3f4f6; border-radius: 20px;
+    padding: 3px 10px; font-size: .75rem; color: #555;
+    white-space: nowrap; flex-shrink: 0;
 }
 
-.reco-card p {
-    color: #6b7280;
-    font-size: 14px;
-    margin: 0 0 16px;
+/* ── Vacío ────────────────────────────────────────── */
+.empty-state-mini {
+    text-align: center; padding: 24px 0;
+    color: #9ca3af;
 }
+.empty-state-mini span { font-size: 1.8rem; }
+.empty-state-mini p    { margin: 8px 0 0; font-size: .88rem; }
 
-.btn-reco {
-    background: linear-gradient(90deg, #d90429, #8b0015);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 20px;
+.item-sub { color: #9ca3af; font-size: .85rem; padding: 8px 0; }
+
+/* ── Horario del día (scroll horizontal) ─────────── */
+.dia-hoy-badge {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: .78rem;
     font-weight: 700;
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 1100px) {
-    .stats-row { grid-template-columns: repeat(2, 1fr); }
+.horario-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb transparent;
+}
+.horario-scroll::-webkit-scrollbar { height: 4px; }
+.horario-scroll::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+
+.horario-card {
+    min-width: 155px;
+    border-radius: 12px;
+    padding: 14px 14px 12px;
+    flex-shrink: 0;
+    border-top: 3px solid transparent;
+}
+
+.hc-teo {
+    background: #eff6ff;
+    border-top-color: #3b82f6;
+}
+.hc-prac {
+    background: #f0fdf4;
+    border-top-color: #22c55e;
+}
+
+.hc-hora {
+    font-size: .75rem;
+    font-weight: 700;
+    color: #6b7280;
+    margin-bottom: 6px;
+}
+.hc-nombre {
+    font-size: .88rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+.hc-meta {
+    font-size: .75rem;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+.hc-tipo {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(0,0,0,.06);
+    color: #555;
+}
+
+.horario-vacio {
+    text-align: center;
+    padding: 20px 0;
+    color: #9ca3af;
+    font-size: .88rem;
+}
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 1000px) {
+    .stats-3   { grid-template-columns: repeat(3, 1fr); }
     .dash-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {
-    .stats-row { grid-template-columns: 1fr; }
-    .inicio-saludo h1 { font-size: 26px; }
+    .stats-3 { grid-template-columns: 1fr 1fr; }
+    .inicio-saludo h1 { font-size: 1.5rem; }
 }

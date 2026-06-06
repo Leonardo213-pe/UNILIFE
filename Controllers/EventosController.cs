@@ -3,39 +3,59 @@ using Microsoft.EntityFrameworkCore;
 using Unilife.Data;
 using Unilife.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace Unilife.Controllers
 {
     [Authorize]
-
     public class EventosController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public EventosController(ApplicationDbContext context)
+        public EventosController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index(string tipoEvento)
+        public async Task<IActionResult> Index(string tipoEvento, string buscar)
         {
-            var eventos = _context.Eventos.AsQueryable();
-
-            if (!string.IsNullOrEmpty(tipoEvento))
+            try
             {
-                eventos = eventos.Where(e => e.TipoEvento == tipoEvento);
+                var todos = await _context.Eventos.ToListAsync();
+
+                IEnumerable<Evento> eventos = todos;
+
+                if (!User.IsInRole("Coordinador"))
+                {
+                    var usuario = await _userManager.GetUserAsync(User);
+                    var carrera = usuario?.Carrera;
+
+                    eventos = string.IsNullOrEmpty(carrera)
+                        ? todos.Where(e => e.EsGeneral)
+                        : todos.Where(e => e.EsGeneral || e.Carrera == carrera);
+                }
+
+                if (!string.IsNullOrEmpty(tipoEvento))
+                    eventos = eventos.Where(e => e.TipoEvento == tipoEvento);
+
+                if (!string.IsNullOrEmpty(buscar))
+                    eventos = eventos.Where(e =>
+                        e.Titulo.Contains(buscar, StringComparison.OrdinalIgnoreCase) ||
+                        e.Descripcion.Contains(buscar, StringComparison.OrdinalIgnoreCase));
+
+                ViewBag.TipoEvento = tipoEvento;
+                ViewBag.Buscar = buscar;
+
+                return View(eventos.OrderBy(e => e.Fecha).ThenBy(e => e.Hora).ToList());
             }
-
-            ViewBag.TipoEvento = tipoEvento;
-
-            var listaEventos = await eventos.ToListAsync();
-
-            listaEventos = listaEventos
-                .OrderBy(e => e.Fecha)
-                .ThenBy(e => e.Hora)
-                .ToList();
-
-            return View(listaEventos);
+            catch
+            {
+                ViewBag.TipoEvento = tipoEvento;
+                ViewBag.Buscar = buscar;
+                return View(new List<Evento>());
+            }
         }
 
         public async Task<IActionResult> Details(int? id)
@@ -52,14 +72,18 @@ namespace Unilife.Controllers
         [Authorize(Roles = "Coordinador")]
         public IActionResult Create()
         {
+            ViewBag.Carreras = Carreras.Todas;
             return View();
         }
-        [Authorize(Roles = "Coordinador")]
 
+        [Authorize(Roles = "Coordinador")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Evento evento)
         {
+            if (evento.EsGeneral)
+                evento.Carrera = null;
+
             if (ModelState.IsValid)
             {
                 _context.Eventos.Add(evento);
@@ -67,11 +91,11 @@ namespace Unilife.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            ViewBag.Carreras = Carreras.Todas;
             return View(evento);
         }
 
         [Authorize(Roles = "Coordinador")]
-
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -80,15 +104,19 @@ namespace Unilife.Controllers
 
             if (evento == null) return NotFound();
 
+            ViewBag.Carreras = Carreras.Todas;
             return View(evento);
         }
-        [Authorize(Roles = "Coordinador")]
 
+        [Authorize(Roles = "Coordinador")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Evento evento)
         {
             if (id != evento.Id) return NotFound();
+
+            if (evento.EsGeneral)
+                evento.Carrera = null;
 
             if (ModelState.IsValid)
             {
@@ -97,10 +125,11 @@ namespace Unilife.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            ViewBag.Carreras = Carreras.Todas;
             return View(evento);
         }
-        [Authorize(Roles = "Coordinador")]
 
+        [Authorize(Roles = "Coordinador")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();

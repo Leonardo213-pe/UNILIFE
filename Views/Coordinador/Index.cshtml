@@ -1,39 +1,122 @@
+@model Unilife.Models.CoordinadorDashboardViewModel
+
+@{
+    ViewData["Title"] = "Panel Administrativo";
+    var hoy = DateTime.Today.ToString("dddd, d 'de' MMMM", new System.Globalization.CultureInfo("es-PE"));
+}
+
 <link rel="stylesheet" href="~/css/coordinador.css" asp-append-version="true" />
 
 <div class="coordinador-page">
 
-    <div class="coordinador-header">
-        <h1>Panel Coordinador</h1>
-        <p>Bienvenido al centro de administración de UniLife.</p>
+    <!-- Banner superior -->
+    <div class="adm-banner mb-4">
+        <div class="adm-banner-text">
+            <h1>Panel Administrativo</h1>
+            <p>Resumen de actividad y métricas de la plataforma UniLife</p>
+        </div>
+        <div class="adm-banner-badge">
+            <span>@DateTime.Today.Day</span>
+            @DateTime.Today.ToString("MMM yyyy", new System.Globalization.CultureInfo("es-PE")).ToUpper()
+        </div>
     </div>
 
-    <div class="coordinador-grid">
+    <!-- KPIs principales -->
+    <div class="adm-kpi-grid">
+        <div class="adm-kpi">
+            <div class="adm-kpi-icon icon-red">👥</div>
+            <div class="adm-kpi-data">
+                <div class="num">@Model.TotalAlumnos</div>
+                <div class="lbl">Alumnos</div>
+            </div>
+        </div>
+        <div class="adm-kpi">
+            <div class="adm-kpi-icon icon-purple">🎓</div>
+            <div class="adm-kpi-data">
+                <div class="num">@Model.TotalDocentes</div>
+                <div class="lbl">Docentes</div>
+            </div>
+        </div>
+        <div class="adm-kpi">
+            <div class="adm-kpi-icon icon-blue">📚</div>
+            <div class="adm-kpi-data">
+                <div class="num">@Model.TotalCursos</div>
+                <div class="lbl">Cursos activos</div>
+            </div>
+        </div>
+        <div class="adm-kpi">
+            <div class="adm-kpi-icon icon-green">📅</div>
+            <div class="adm-kpi-data">
+                <div class="num">@Model.TotalEventos</div>
+                <div class="lbl">Eventos</div>
+            </div>
+        </div>
+        <div class="adm-kpi">
+            <div class="adm-kpi-icon icon-yellow">📍</div>
+            <div class="adm-kpi-data">
+                <div class="num">@Model.TotalLugares</div>
+                <div class="lbl">Lugares</div>
+            </div>
+        </div>
+    </div>
 
-        <a asp-controller="Cursos" asp-action="Index" class="coordinador-card">
-            <div class="card-icon">📚</div>
-            <h3>Gestionar cursos</h3>
-            <p>Crea, edita y organiza cursos, horarios y aulas.</p>
-        </a>
+    <!-- Métricas de uso -->
+    <div class="adm-metrics-grid">
 
-        <a asp-controller="Eventos" asp-action="Index" class="coordinador-card">
-            <div class="card-icon">📅</div>
-            <h3>Gestionar eventos</h3>
-            <p>Administra talleres, charlas, hackathones y eventos generales.</p>
-        </a>
+        <!-- Tareas: progreso general -->
+        <div class="metric-card">
+            <div class="mc-title">Progreso de tareas</div>
+            <div class="mc-value">@Model.PorcentajeCompletado<span class="mc-unit">%</span></div>
+            <div class="mc-bar-bg">
+                <div class="mc-bar-fill" style="width:@Model.PorcentajeCompletado%"></div>
+            </div>
+            <div class="mc-sub">@Model.TareasCompletadas completadas de @Model.TareasTotales en total</div>
+        </div>
 
-        <a asp-controller="Lugares" asp-action="Index" class="coordinador-card">
-            <div class="card-icon">📍</div>
-            <h3>Gestionar lugares</h3>
-            <p>Registra restaurantes, cafeterías, bibliotecas y zonas recomendadas.</p>
-        </a>
+        <!-- Inscripciones -->
+        <div class="metric-card">
+            <div class="mc-title">Inscripciones en cursos</div>
+            <div class="mc-value">@Model.TotalInscripciones</div>
+            <div class="mc-bar-bg">
+                @{
+                    var pctCursos = Model.TotalCursos == 0 ? 0 : (int)Math.Round(Model.CursosConAlumnos * 100.0 / Model.TotalCursos);
+                }
+                <div class="mc-bar-fill" style="width:@pctCursos%;background:linear-gradient(90deg,#3b82f6,#06b6d4)"></div>
+            </div>
+            <div class="mc-sub">@Model.CursosConAlumnos de @Model.TotalCursos cursos tienen alumnos inscritos</div>
+        </div>
 
     </div>
 
-    <div class="logout-box">
-        <form asp-controller="Account" asp-action="Logout" method="post">
-            <button type="submit" class="btn btn-outline-danger">
-                Cerrar sesión
-            </button>
-        </form>
+    <!-- Fila inferior -->
+    <div class="adm-bottom-grid">
+
+        <div class="mini-card">
+            <div class="mini-card-icon">🗓</div>
+            <div>
+                <div class="mc-title">Eventos próximos</div>
+                <div class="mc-value">@Model.EventosProximos</div>
+                <div class="mc-sub">en los próximos 7 días</div>
+            </div>
+        </div>
+
+        <div class="mini-card">
+            <div class="mini-card-icon">🏫</div>
+            <div>
+                <div class="mc-title">Carrera con más cursos</div>
+                <div class="mc-value" style="font-size:15px;line-height:1.3">@Model.CarreraConMasCursos</div>
+            </div>
+        </div>
+
+        <div class="mini-card">
+            <div class="mini-card-icon">👤</div>
+            <div>
+                <div class="mc-title">Usuarios registrados</div>
+                <div class="mc-value">@(Model.TotalAlumnos + Model.TotalDocentes)</div>
+                <div class="mc-sub">@Model.TotalAlumnos alumnos · @Model.TotalDocentes docentes</div>
+            </div>
+        </div>
+
     </div>
+
 </div>

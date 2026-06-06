@@ -2,57 +2,369 @@
 
 @{
     ViewData["Title"] = "Cursos";
+
+    string modo                 = ViewBag.Modo               ?? "carreras";
+    string carreraSeleccionada  = ViewBag.CarreraSeleccionada ?? "";
+    string semestreSeleccionado = ViewBag.SemestreSeleccionado ?? "";
+
+    var docentes     = ViewBag.Docentes as IList<Unilife.Models.ApplicationUser> ?? new List<Unilife.Models.ApplicationUser>();
+    bool mostrarModal = ViewBag.MostrarModal == true;
+
+    var cursosPorCarrera  = ViewBag.CursosPorCarrera  as Dictionary<string,int> ?? new Dictionary<string,int>();
+    var cursosPorSemestre = ViewBag.CursosPorSemestre as Dictionary<string,int> ?? new Dictionary<string,int>();
+
+    var romanOrder = new[] { "I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII" };
+
+    var iconos = new Dictionary<string,string>
+    {
+        ["Ingeniería en Sistemas"]     = "💻",
+        ["Ingeniería Civil"]           = "🏗",
+        ["Ingeniería Mecatrónica"]     = "🤖",
+        ["Ingeniería Industrial"]      = "🏭",
+        ["Derecho"]                    = "⚖",
+        ["Psicología"]                 = "🧠",
+        ["Administración de Empresas"] = "📊",
+        ["Comunicación Social"]        = "📡",
+        ["Medicina"]                   = "🩺",
+        ["Enfermería"]                 = "💊",
+        ["Odontología"]                = "🦷",
+        ["Nutrición"]                  = "🥗",
+    };
+
+    var todasCarrerasDb = ViewBag.CarrerasDb as List<Unilife.Models.CarreraRegistrada>
+                          ?? new List<Unilife.Models.CarreraRegistrada>();
+    bool modoDocente = ViewBag.ModoDocente == true;
+
+    var gruposLabel = new[] { "Ingenierías", "Ciencias Sociales", "Ciencias Médicas" };
+    var gruposColor = new[] { "azul", "verde", "rojo" };
+    var gruposLista = new[] {
+        todasCarrerasDb.Where(c => c.Grupo == "Ingenierías").Select(c => c.Nombre).ToList(),
+        todasCarrerasDb.Where(c => c.Grupo == "Ciencias Sociales").Select(c => c.Nombre).ToList(),
+        todasCarrerasDb.Where(c => c.Grupo == "Ciencias Médicas").Select(c => c.Nombre).ToList(),
+    };
+
+    bool carreraEsMedica = todasCarrerasDb.FirstOrDefault(c => c.Nombre == carreraSeleccionada)?.EsMedica ?? false;
 }
 
 <link rel="stylesheet" href="~/css/cursos.css" asp-append-version="true" />
 
 <div class="cursos-page">
 
+@if (modo == "alumno")
+{
     <div class="cursos-header">
-        <h1>Cursos</h1>
+        <div>
+            <h1>Mis cursos</h1>
+            <p class="text-muted mb-0">Cursos en los que estás inscrito.</p>
+        </div>
+    </div>
 
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>Aún no estás inscrito en ningún curso.</p>
+        </div>
+    }
+    else
+    {
+        <div class="cursos-grid">
+            @foreach (var curso in Model)
+            {
+                var teorico  = curso.Horarios.FirstOrDefault(h => h.Tipo == "Teórico");
+                var practico = curso.Horarios.FirstOrDefault(h => h.Tipo == "Práctico");
+
+                <div class="curso-card" onclick="window.location='@Url.Action("Details", "Cursos", new { id = curso.Id })';">
+                    <div class="curso-title">@curso.Nombre</div>
+                    <div class="curso-info">@curso.Carrera · Semestre @curso.Semestre</div>
+                    <div class="curso-info">👤 @(curso.DocenteUser != null ? $"{curso.DocenteUser.Nombre} {curso.DocenteUser.Apellido}" : "—")</div>
+                    @if (teorico != null)
+                    {
+                        <div class="curso-info">📖 @teorico.Dia @teorico.HoraInicio.ToString(@"hh\:mm")–@teorico.HoraFin.ToString(@"hh\:mm") · @teorico.CodigoAula</div>
+                    }
+                    @if (practico != null)
+                    {
+                        <div class="curso-info">🔬 @practico.Dia @practico.HoraInicio.ToString(@"hh\:mm")–@practico.HoraFin.ToString(@"hh\:mm") · @practico.CodigoAula</div>
+                    }
+                </div>
+            }
+        </div>
+    }
+}
+else if (modo == "carreras")
+{
+    <div class="cursos-header">
+        <div>
+            <h1>Cursos</h1>
+            <p class="text-muted mb-0">Selecciona una carrera para explorar sus cursos.</p>
+        </div>
         @if (User.IsInRole("Coordinador"))
         {
-            <a asp-action="Create" class="btn-crear">+ Crear curso</a>
+            <button class="btn-crear" data-bs-toggle="modal" data-bs-target="#modalCrearCarrera">+ Crear carrera</button>
         }
     </div>
 
-    <div class="cursos-grid">
-
-        @foreach (var curso in Model)
-        {
-            <div class="curso-card">
-
-                <div class="curso-title">@curso.Nombre</div>
-
-                <div class="curso-info">Carrera: @curso.Carrera</div>
-                <div class="curso-info">Semestre: @curso.Semestre</div>
-                <div class="curso-info">Docente: @curso.Docente</div>
-                <div class="curso-info">Horario: @curso.HoraInicio - @curso.HoraFin</div>
-                <div class="curso-info">Aula: @curso.CodigoAula</div>
-
-                <div class="curso-footer">
-
-                    <a asp-action="Details" asp-route-id="@curso.Id" class="btn-detalle">
-                        Detalles
+    @for (int gi = 0; gi < gruposLabel.Length; gi++)
+    {
+        <div class="grupo-seccion grupo-@gruposColor[gi]">
+            <div class="grupo-titulo">
+                <span class="grupo-titulo-texto">@gruposLabel[gi]</span>
+                <span class="grupo-titulo-linea"></span>
+            </div>
+            <div class="carrera-grid">
+                @foreach (var c in gruposLista[gi])
+                {
+                    int total = cursosPorCarrera.TryGetValue(c, out int n) ? n : 0;
+                    if (modoDocente && total == 0) { continue; }
+                    <a href="@Url.Action("Index", new { carrera = c })"
+                       class="carrera-card @(!User.IsInRole("Coordinador") && total == 0 ? "sin-cursos" : "")">
+                        <div class="carrera-icono">@(iconos.TryGetValue(c, out var ico) ? ico : "📚")</div>
+                        <div class="carrera-nombre">@c</div>
+                        <div class="carrera-badge">@total @(total == 1 ? "curso" : "cursos")</div>
                     </a>
+                }
+            </div>
+        </div>
+    }
+}
+else if (modo == "semestres")
+{
+    <div class="cursos-header">
+        <div>
+            <nav class="breadcrumb-nav">
+                <a href="@Url.Action("Index")">Cursos</a>
+                <span class="sep">›</span>
+                <span class="actual">@carreraSeleccionada</span>
+            </nav>
+            <h1>@carreraSeleccionada</h1>
+            <p class="text-muted mb-0">Selecciona un semestre.</p>
+        </div>
+        @if (User.IsInRole("Coordinador"))
+        {
+            <button class="btn-crear" data-bs-toggle="modal" data-bs-target="#modalCrearCurso">+ Crear curso</button>
+        }
+    </div>
+
+    @if (!cursosPorSemestre.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>No hay cursos registrados para esta carrera.</p>
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm">Volver</a>
+        </div>
+    }
+    else
+    {
+        <div class="semestre-grid">
+            @foreach (var sem in romanOrder.Where(r => cursosPorSemestre.ContainsKey(r)))
+            {
+                int total = cursosPorSemestre[sem];
+                <a href="@Url.Action("Index", new { carrera = carreraSeleccionada, semestre = sem })"
+                   class="semestre-card">
+                    <div class="semestre-num">@sem</div>
+                    <div class="semestre-label">Semestre</div>
+                    <div class="semestre-count">@total @(total == 1 ? "curso" : "cursos")</div>
+                </a>
+            }
+        </div>
+    }
+}
+else
+{
+    <div class="cursos-header">
+        <div>
+            <nav class="breadcrumb-nav">
+                <a href="@Url.Action("Index")">@(modoDocente ? "Mis Cursos" : "Cursos")</a>
+                <span class="sep">›</span>
+                @if (modoDocente)
+                {
+                    <span class="actual">@carreraSeleccionada</span>
+                }
+                else
+                {
+                    <a href="@Url.Action("Index", new { carrera = carreraSeleccionada })">@carreraSeleccionada</a>
+                    <span class="sep">›</span>
+                    <span class="actual">Semestre @semestreSeleccionado</span>
+                }
+            </nav>
+            <h1>@(modoDocente ? carreraSeleccionada : $"Semestre {semestreSeleccionado}")</h1>
+            <p class="text-muted mb-0">@(modoDocente ? "Cursos que enseñas en esta carrera" : carreraSeleccionada)</p>
+        </div>
+        @if (User.IsInRole("Coordinador"))
+        {
+            <button class="btn-crear" data-bs-toggle="modal" data-bs-target="#modalCrearCurso">+ Crear curso</button>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>No hay cursos en este semestre todavía.</p>
+        </div>
+    }
+    else
+    {
+        <div class="cursos-grid">
+            @foreach (var curso in Model)
+            {
+                var teorico  = curso.Horarios.FirstOrDefault(h => h.Tipo == "Teórico");
+                var practico = curso.Horarios.FirstOrDefault(h => h.Tipo == "Práctico");
+
+                <div class="curso-card" onclick="window.location='@Url.Action("Details", "Cursos", new { id = curso.Id })';">
+                    <div class="curso-title">@curso.Nombre</div>
+                    @if (modoDocente)
+                    {
+                        <div class="curso-info">📚 Semestre @curso.Semestre</div>
+                    }
+                    else
+                    {
+                        <div class="curso-info">Docente: @(curso.DocenteUser != null ? $"{curso.DocenteUser.Nombre} {curso.DocenteUser.Apellido}" : "—")</div>
+                    }
+                    @if (teorico != null)
+                    {
+                        <div class="curso-info">📖 @teorico.Dia @teorico.HoraInicio.ToString(@"hh\:mm")–@teorico.HoraFin.ToString(@"hh\:mm") · @teorico.CodigoAula</div>
+                    }
+                    @if (practico != null)
+                    {
+                        <div class="curso-info">🔬 @practico.Dia @practico.HoraInicio.ToString(@"hh\:mm")–@practico.HoraFin.ToString(@"hh\:mm") · @practico.CodigoAula</div>
+                    }
+                    <div class="curso-info">👥 @curso.Participantes.Count inscritos</div>
 
                     @if (User.IsInRole("Coordinador"))
                     {
-                        <a asp-action="Edit" asp-route-id="@curso.Id" class="btn-edit">
-                            Editar
-                        </a>
-
-                        <a asp-action="Delete" asp-route-id="@curso.Id" class="btn-delete">
-                            Eliminar
-                        </a>
+                        <div class="curso-footer">
+                            <a asp-action="Edit" asp-route-id="@curso.Id" class="btn-edit" onclick="event.stopPropagation();">Editar</a>
+                            <a asp-action="Delete" asp-route-id="@curso.Id" class="btn-delete" onclick="event.stopPropagation();">Eliminar</a>
+                        </div>
                     }
-
                 </div>
+            }
+        </div>
+    }
+}
 
+@* ── Modales ────────────────────────────────────────────────────────── *@
+
+@if (User.IsInRole("Coordinador") && modo == "carreras")
+{
+    <div class="modal fade" id="modalCrearCarrera" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva carrera</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-controller="Coordinador" asp-action="CrearCarrera" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nombre de la carrera</label>
+                            <input name="nombre" class="form-control" placeholder="Ej: Arquitectura" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Grupo académico</label>
+                            <select name="grupo" class="form-select" required>
+                                <option value="">— Selecciona —</option>
+                                <option value="Ingenierías">Ingenierías</option>
+                                <option value="Ciencias Sociales">Ciencias Sociales</option>
+                                <option value="Ciencias Médicas">Ciencias Médicas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Guardar carrera</button>
+                    </div>
+                </form>
             </div>
-        }
-
+        </div>
     </div>
+}
+
+@if (User.IsInRole("Coordinador") && (modo == "semestres" || modo == "cursos"))
+{
+    <div class="modal fade @(mostrarModal ? "show" : "")" id="modalCrearCurso" tabindex="-1"
+         style="@(mostrarModal ? "display:block;" : "")" aria-hidden="@(!mostrarModal)">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear curso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="Create" method="post">
+                    <div class="modal-body">
+                        <div class="asp-validation-summary text-danger mb-2"></div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Nombre</label>
+                                <input name="Nombre" class="form-control" required />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Descripción</label>
+                                <textarea name="Descripcion" class="form-control" rows="2"></textarea>
+                            </div>
+
+                            @* Carrera siempre se conoce por contexto en nivel 2 y 3 *@
+                            <input type="hidden" name="Carrera" value="@carreraSeleccionada" />
+                            <div class="col-md-6">
+                                <label class="form-label">Carrera</label>
+                                <p class="form-control-plaintext fw-semibold text-dark mb-0">@carreraSeleccionada</p>
+                            </div>
+
+                            @if (modo == "cursos")
+                            {
+                                @* Semestre fijo en nivel 3 *@
+                                <input type="hidden" name="Semestre" value="@semestreSeleccionado" />
+                                <div class="col-md-6">
+                                    <label class="form-label">Semestre</label>
+                                    <p class="form-control-plaintext fw-semibold text-dark mb-0">@semestreSeleccionado</p>
+                                </div>
+                            }
+                            else
+                            {
+                                @* Semestre elegible en nivel 2 *@
+                                <div class="col-md-6">
+                                    <label class="form-label">Semestre</label>
+                                    <select name="Semestre" id="modalSemestre" class="form-select" required>
+                                        <option value="">— Semestre —</option>
+                                        @foreach (var s in romanOrder)
+                                        {
+                                            if (s == "XI" || s == "XII")
+                                            {
+                                                if (carreraEsMedica) { <option value="@s">@s</option> }
+                                            }
+                                            else { <option value="@s">@s</option> }
+                                        }
+                                    </select>
+                                </div>
+                            }
+
+                            <div class="col-md-12">
+                                <label class="form-label">Docente</label>
+                                <select name="DocenteId" class="form-select">
+                                    <option value="">— Sin asignar —</option>
+                                    @foreach (var d in docentes)
+                                    { <option value="@d.Id">@d.Nombre @d.Apellido</option> }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Crear curso</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @if (mostrarModal)
+    {
+        <div class="modal-backdrop fade show"></div>
+    }
+}
 
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

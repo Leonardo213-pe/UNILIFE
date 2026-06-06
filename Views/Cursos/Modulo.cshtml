@@ -1,0 +1,245 @@
+@model Unilife.Models.Modulo
+
+@{
+    ViewData["Title"] = Model.Nombre;
+    bool puedeEditar = User.IsInRole("Coordinador") || User.IsInRole("Docente");
+
+    var iconos = new Dictionary<string, string>
+    {
+        ["Tarea"]       = "📋",
+        ["Material"]    = "📄",
+        ["Diapositiva"] = "📊",
+        ["Enlace"]      = "🔗",
+    };
+    var colores = new Dictionary<string, string>
+    {
+        ["Tarea"]       = "#c62828",
+        ["Material"]    = "#1565c0",
+        ["Diapositiva"] = "#e65100",
+        ["Enlace"]      = "#2e7d32",
+    };
+}
+
+<link rel="stylesheet" href="~/css/cursodetalle.css" asp-append-version="true" />
+
+<div class="cd-page">
+
+    @* Banner *@
+    <div class="cd-banner cd-color-@Model.Color" style="padding:24px 36px 20px;">
+        <nav style="font-size:.82rem;opacity:.8;margin-bottom:8px;">
+            <a href="@Url.Action("Index")" style="color:#fff;text-decoration:none;">Cursos</a>
+            <span style="margin:0 6px;">›</span>
+            <a href="@Url.Action("Details", new { id = Model.CursoId })" style="color:#fff;text-decoration:none;">@Model.Curso.Nombre</a>
+            <span style="margin:0 6px;">›</span>
+            <span>@Model.Nombre</span>
+        </nav>
+        <h1 style="font-size:1.3rem;">@Model.Nombre</h1>
+        <p style="opacity:.78;margin:0;">@Model.Actividades.Count actividad@(Model.Actividades.Count == 1 ? "" : "es")</p>
+    </div>
+
+    @* Botones agregar (solo docente/coordinador) *@
+    @if (puedeEditar)
+    {
+        <div style="padding:20px 32px 0;display:flex;flex-wrap:wrap;gap:10px;">
+            <button class="mod-add-btn" style="--c:#c62828" data-tipo="Tarea" onclick="abrirModal('Tarea')">
+                📋 + Tarea
+            </button>
+            <button class="mod-add-btn" style="--c:#1565c0" data-tipo="Material" onclick="abrirModal('Material')">
+                📄 + Material
+            </button>
+            <button class="mod-add-btn" style="--c:#e65100" data-tipo="Diapositiva" onclick="abrirModal('Diapositiva')">
+                📊 + Diapositiva
+            </button>
+            <button class="mod-add-btn" style="--c:#2e7d32" data-tipo="Enlace" onclick="abrirModal('Enlace')">
+                🔗 + Enlace
+            </button>
+        </div>
+    }
+
+    @* Lista de actividades *@
+    <div class="cd-tab-panel active">
+
+        @if (!Model.Actividades.Any())
+        {
+            <div style="text-align:center;padding:48px 0;color:#aaa;">
+                <div style="font-size:3rem;margin-bottom:12px;">📭</div>
+                <p>Esta sección no tiene contenido aún.</p>
+                @if (puedeEditar)
+                {
+                    <p style="font-size:.88rem;">Usa los botones de arriba para agregar actividades.</p>
+                }
+            </div>
+        }
+        else
+        {
+            @foreach (var act in Model.Actividades.OrderBy(a => a.Orden))
+            {
+                string icono = iconos.TryGetValue(act.Tipo, out var i) ? i : "📄";
+                string color = colores.TryGetValue(act.Tipo, out var c) ? c : "#555";
+
+                <div class="cd-item" style="margin-bottom:12px;">
+                    <div class="cd-item-icon" style="background:@color;font-size:1.3rem;">@icono</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:600;font-size:.95rem;">@act.Titulo</div>
+                        @if (!string.IsNullOrEmpty(act.Descripcion))
+                        {
+                            <div style="color:#777;font-size:.83rem;margin-top:2px;">@act.Descripcion</div>
+                        }
+                        @if (act.FechaEntrega.HasValue)
+                        {
+                            <div style="color:#c62828;font-size:.82rem;margin-top:3px;">
+                                📅 Entrega: @act.FechaEntrega.Value.ToString("dd/MM/yyyy")
+                            </div>
+                        }
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+                        @if (!string.IsNullOrEmpty(act.Url))
+                        {
+                            <a href="@act.Url" target="_blank"
+                               class="cd-item-mark"
+                               style="background:@color;color:#fff;border-color:@color;text-decoration:none;">
+                                @(act.Tipo == "Tarea" ? "Ver tarea" : "Abrir")
+                            </a>
+                        }
+                        @if (act.Tipo == "Tarea")
+                        {
+                            <button class="cd-item-mark" id="mark_@act.Id"
+                                    onclick="toggleHecho(this, 'act_@act.Id')">
+                                Marcar como hecho
+                            </button>
+                        }
+                        @if (puedeEditar)
+                        {
+                            <form asp-action="EliminarActividad" method="post" style="margin:0;"
+                                  onsubmit="return confirm('¿Eliminar esta actividad?')">
+                                <input type="hidden" name="id" value="@act.Id" />
+                                <input type="hidden" name="moduloId" value="@Model.Id" />
+                                <button type="submit" style="background:none;border:none;color:#ccc;font-size:1.1rem;cursor:pointer;padding:4px 6px;"
+                                        title="Eliminar">✕</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+</div>
+
+<div style="padding:0 0 24px 4px;">
+    <a href="@Url.Action("Details", new { id = Model.CursoId })" class="cd-btn-volver">← Volver al curso</a>
+</div>
+
+@* Modal agregar actividad *@
+@if (puedeEditar)
+{
+    <div class="modal fade" id="modalActividad" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalActividadTitulo">Nueva actividad</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="CrearActividad" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="moduloId" value="@Model.Id" />
+                    <input type="hidden" name="tipo" id="inputTipo" value="Material" />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Título</label>
+                            <input name="titulo" class="form-control" required placeholder="Nombre de la actividad" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Descripción <span class="text-muted fw-normal small">(opcional)</span></label>
+                            <textarea name="descripcion" class="form-control" rows="2" placeholder="Descripción breve..."></textarea>
+                        </div>
+
+                        @* Campo fecha — solo para Tarea *@
+                        <div class="mb-3" id="campoFecha" style="display:none;">
+                            <label class="form-label fw-semibold">Fecha de entrega</label>
+                            <input type="date" name="fechaEntrega" class="form-control" />
+                        </div>
+
+                        @* Campo URL — para Enlace y Diapositiva *@
+                        <div class="mb-3" id="campoUrl" style="display:none;">
+                            <label class="form-label fw-semibold" id="labelUrl">URL</label>
+                            <input type="url" name="url" class="form-control" placeholder="https://..." />
+                        </div>
+
+                        @* Campo archivo — para Material y Tarea *@
+                        <div class="mb-3" id="campoArchivo">
+                            <label class="form-label fw-semibold">
+                                Archivo <span class="text-muted fw-normal small">(opcional, o pega una URL arriba)</span>
+                            </label>
+                            <input type="file" name="archivo" class="form-control"
+                                   accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.png,.jpg,.jpeg" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger" id="btnCrear">Agregar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Restaurar estado de tareas
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[id^="mark_"]').forEach(btn => {
+                const key = 'act_' + btn.id.replace('mark_', '');
+                if (localStorage.getItem(key) === '1') {
+                    btn.textContent = '✓ Hecho';
+                    btn.classList.add('done');
+                }
+            });
+        });
+
+        function toggleHecho(btn, key) {
+            const done = localStorage.getItem(key) === '1';
+            if (done) {
+                localStorage.removeItem(key);
+                btn.textContent = 'Marcar como hecho';
+                btn.classList.remove('done');
+            } else {
+                localStorage.setItem(key, '1');
+                btn.textContent = '✓ Hecho';
+                btn.classList.add('done');
+            }
+        }
+
+        function abrirModal(tipo) {
+            document.getElementById('inputTipo').value = tipo;
+
+            const titulos = {
+                'Tarea': '📋 Nueva tarea',
+                'Material': '📄 Nuevo material',
+                'Diapositiva': '📊 Nueva diapositiva',
+                'Enlace': '🔗 Nuevo enlace'
+            };
+            document.getElementById('modalActividadTitulo').textContent = titulos[tipo] || 'Nueva actividad';
+
+            // Mostrar/ocultar campos según tipo
+            const campoFecha   = document.getElementById('campoFecha');
+            const campoUrl     = document.getElementById('campoUrl');
+            const campoArchivo = document.getElementById('campoArchivo');
+            const labelUrl     = document.getElementById('labelUrl');
+
+            campoFecha.style.display   = tipo === 'Tarea' ? '' : 'none';
+            campoArchivo.style.display = (tipo === 'Material' || tipo === 'Tarea') ? '' : 'none';
+            campoUrl.style.display     = (tipo === 'Enlace' || tipo === 'Diapositiva' || tipo === 'Material' || tipo === 'Tarea') ? '' : 'none';
+
+            const urlLabels = {
+                'Enlace': 'URL del enlace',
+                'Diapositiva': 'URL de la presentación (Google Slides, etc.)',
+                'Material': 'URL del material (opcional si sube archivo)',
+                'Tarea': 'URL de la tarea (opcional si sube archivo)',
+            };
+            labelUrl.textContent = urlLabels[tipo] || 'URL';
+
+            new bootstrap.Modal(document.getElementById('modalActividad')).show();
+        }
+    </script>
+}

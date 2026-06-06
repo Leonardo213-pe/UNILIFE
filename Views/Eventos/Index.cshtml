@@ -39,8 +39,12 @@
                     <div class="info-line">🕒 @item.Hora</div>
                     <div class="info-line">📍 @item.Lugar</div>
                     <div class="info-line">👥 Evento universitario</div>
-                    <div class="mt-4">
+                    <div class="mt-4 d-flex gap-2 flex-wrap">
                         <a asp-action="Details" asp-route-id="@item.Id" class="btn-red">Ver detalle</a>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                onclick="compartirEvento('@item.Titulo', '@item.Fecha.ToShortDateString()', '@item.Lugar')">
+                            🔗 Compartir
+                        </button>
                     </div>
                     @if (User.IsInRole("Coordinador"))
                     {
@@ -60,4 +64,27 @@
     <div class="mt-4">
         <a asp-action="Create" class="btn btn-danger px-4">+ Crear evento</a>
     </div>
+}
+
+@section Scripts {
+    <script>
+        function compartirEvento(titulo, fecha, lugar) {
+            const texto = `${titulo} - ${fecha} en ${lugar}`;
+            const url = window.location.origin + window.location.pathname;
+
+            if (navigator.share) {
+                navigator.share({ title: titulo, text: texto, url })
+                    .catch(() => {});
+            } else {
+                navigator.clipboard.writeText(texto + '\n' + url)
+                    .then(() => {
+                        const btn = event.target;
+                        const orig = btn.textContent;
+                        btn.textContent = '✓ Copiado';
+                        setTimeout(() => btn.textContent = orig, 2000);
+                    })
+                    .catch(() => alert(texto));
+            }
+        }
+    </script>
 }

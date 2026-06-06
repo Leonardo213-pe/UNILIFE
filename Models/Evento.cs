@@ -28,6 +28,9 @@ namespace Unilife.Models
         public string TipoEvento { get; set; } = string.Empty;
 
         [Display(Name = "Carrera")]
-        public int? CarreraId { get; set; }
+        public string? Carrera { get; set; }
+
+        [Display(Name = "Evento general")]
+        public bool EsGeneral { get; set; } = true;
     }
 }

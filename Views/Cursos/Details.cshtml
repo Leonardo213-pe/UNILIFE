@@ -1,25 +1,278 @@
 @model Unilife.Models.Curso
 
 @{
-    ViewData["Title"] = "Detalles del curso";
+    ViewData["Title"] = Model.Nombre;
+    bool puedeEditar = User.IsInRole("Coordinador") || User.IsInRole("Docente");
+    var modulos = Model.Modulos.OrderBy(m => m.Orden).ToList();
+    var coloresDisponibles = new[]
+    {
+        ("teal",   "Verde agua"),
+        ("blue",   "Azul"),
+        ("gray",   "Gris"),
+        ("orange", "Naranja"),
+        ("pink",   "Rosa"),
+        ("purple", "Morado"),
+        ("red",    "Rojo"),
+        ("green",  "Verde"),
+    };
 }
 
-<h1>@Model.Nombre</h1>
+<link rel="stylesheet" href="~/css/cursodetalle.css" asp-append-version="true" />
 
-<div class="card">
-    <div class="card-body">
-        <p><strong>Descripción:</strong> @Model.Descripcion</p>
-        <p><strong>Carrera:</strong> @Model.Carrera</p>
-        <p><strong>Semestre:</strong> @Model.Semestre</p>
-        <p><strong>Docente:</strong> @Model.Docente</p>
-        <p><strong>Horario:</strong> @Model.HoraInicio - @Model.HoraFin</p>
-        <p><strong>Pabellón:</strong> @Model.Pabellon</p>
-        <p><strong>Aula:</strong> @Model.Aula</p>
-        <p><strong>Código de aula:</strong> @Model.CodigoAula</p>
+<div class="cd-page">
+
+    @* ── Banner ──────────────────────────────────────────── *@
+    <div class="cd-banner">
+        <h1>@Model.Nombre</h1>
+        <p>@Model.Carrera</p>
+        <div class="cd-banner-meta">
+            <span>📚 Semestre @Model.Semestre</span>
+            <span>👤 @(Model.DocenteUser != null ? $"{Model.DocenteUser.Nombre} {Model.DocenteUser.Apellido}" : "Sin docente")</span>
+            <span>👥 @Model.Participantes.Count alumnos</span>
+        </div>
     </div>
+
+    @* ── Tabs ─────────────────────────────────────────────── *@
+    <div class="cd-tabs">
+        <button class="cd-tab-btn active" onclick="cambiarTab('curso', this)">Curso</button>
+        <button class="cd-tab-btn" onclick="cambiarTab('participantes', this)">Participantes</button>
+        <button class="cd-tab-btn" onclick="cambiarTab('calificaciones', this)">Calificaciones</button>
+        <button class="cd-tab-btn" onclick="cambiarTab('competencias', this)">Competencias</button>
+    </div>
+
+    @* ── TAB: Curso ───────────────────────────────────────── *@
+    <div id="tab-curso" class="cd-tab-panel active">
+
+        <h2 class="cd-section-title">General</h2>
+
+        @* Sílabo *@
+        <div class="cd-item">
+            <div class="cd-item-icon">📄</div>
+            <span class="cd-item-label">SÍLABO</span>
+            <button class="cd-item-mark" id="btnSilabo"
+                    onclick="toggleHecho(this, 'silabo_@Model.Id')">Marcar como hecho</button>
+        </div>
+
+        @* Horarios del curso *@
+        @if (Model.Horarios.Any())
+        {
+            <div class="cd-horario-chips">
+                @foreach (var h in Model.Horarios)
+                {
+                    <div class="cd-horario-chip">
+                        <span class="tipo-badge @(h.Tipo == "Práctico" ? "practico" : "")">@h.Tipo</span>
+                        <span>@h.Dia</span>
+                        <span>@h.HoraInicio.ToString(@"hh\:mm") – @h.HoraFin.ToString(@"hh\:mm")</span>
+                        <span>🏫 @h.CodigoAula</span>
+                    </div>
+                }
+            </div>
+        }
+
+        @* Módulos *@
+        <div style="margin-top:28px;">
+            <div class="cd-modulos-grid">
+                @foreach (var mod in modulos)
+                {
+                    <a href="@Url.Action("DetalleModulo", new { id = mod.Id })" class="cd-modulo-card cd-color-@mod.Color" style="text-decoration:none;">
+                        <div class="cd-modulo-nombre">@mod.Nombre</div>
+                        <div class="cd-modulo-img"></div>
+                    </a>
+                }
+
+                @if (puedeEditar)
+                {
+                    <button class="cd-modulo-add" data-bs-toggle="modal" data-bs-target="#modalCrearModulo">
+                        <span>+</span>
+                        <span>Agregar sección</span>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* ── TAB: Participantes ───────────────────────────────── *@
+    <div id="tab-participantes" class="cd-tab-panel">
+
+        <h2 class="cd-section-title">Alumnos inscritos (@Model.Participantes.Count)</h2>
+
+        @if (!Model.Participantes.Any())
+        {
+            <p style="color:#888;">No hay alumnos inscritos en este curso.</p>
+        }
+        else
+        {
+            <table class="cd-participantes-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Alumno</th>
+                        <th>Carrera</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int num = 1; }
+                    @foreach (var p in Model.Participantes)
+                    {
+                        string iniciales = $"{(p.Alumno.Nombre?.Length > 0 ? p.Alumno.Nombre[0] : ' ')}{(p.Alumno.Apellido?.Length > 0 ? p.Alumno.Apellido[0] : ' ')}";
+                        <tr>
+                            <td style="color:#999;font-size:.85rem;">@(num++)</td>
+                            <td>
+                                <div style="display:flex;align-items:center;">
+                                    <span class="cd-alumno-avatar">@iniciales</span>
+                                    @p.Alumno.Nombre @p.Alumno.Apellido
+                                </div>
+                            </td>
+                            <td style="color:#777;font-size:.88rem;">@(p.Alumno.Carrera ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    @* ── TAB: Calificaciones ──────────────────────────────── *@
+    <div id="tab-calificaciones" class="cd-tab-panel">
+
+        <h2 class="cd-section-title">Calificaciones</h2>
+
+        @if (!Model.Participantes.Any())
+        {
+            <p style="color:#888;">No hay alumnos inscritos para mostrar calificaciones.</p>
+        }
+        else
+        {
+            <div style="overflow-x:auto;">
+                <table class="cd-notas-table">
+                    <thead>
+                        <tr>
+                            <th>Alumno</th>
+                            @foreach (var mod in modulos)
+                            {
+                                <th>@mod.Nombre</th>
+                            }
+                            <th>Promedio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Participantes)
+                        {
+                            <tr>
+                                <td>@p.Alumno.Nombre @p.Alumno.Apellido</td>
+                                @foreach (var mod in modulos)
+                                {
+                                    <td>—</td>
+                                }
+                                <td>—</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p style="color:#aaa;font-size:.82rem;margin-top:14px;">Las calificaciones se completarán próximamente.</p>
+        }
+    </div>
+
+    @* ── TAB: Competencias ────────────────────────────────── *@
+    <div id="tab-competencias" class="cd-tab-panel">
+
+        <h2 class="cd-section-title">Descripción del curso</h2>
+        <div class="cd-competencias-box">
+            <p>@(string.IsNullOrEmpty(Model.Descripcion) ? "Este curso no tiene descripción registrada aún." : Model.Descripcion)</p>
+        </div>
+
+        @if (User.IsInRole("Coordinador"))
+        {
+            <div style="margin-top:20px;">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm">✏️ Editar descripción</a>
+            </div>
+        }
+    </div>
+
 </div>
 
-<br />
+@* ── Botón volver ──────────────────────────────────── *@
+<div class="cd-actions">
+    <a asp-action="Index" class="cd-btn-volver">← Volver a cursos</a>
+    @if (User.IsInRole("Coordinador"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="cd-btn-volver">✏️ Editar curso</a>
+    }
+</div>
 
-<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
-<a asp-action="Index" class="btn btn-secondary">Volver</a>
+@* ── Modal crear módulo ────────────────────────────── *@
+@if (puedeEditar)
+{
+    <div class="modal fade" id="modalCrearModulo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva sección</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="CrearModulo" method="post">
+                    <input type="hidden" name="cursoId" value="@Model.Id" />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nombre de la sección</label>
+                            <input name="nombre" class="form-control" placeholder="Ej: UNIDAD 1, PARCIAL, TRABAJO GRUPAL..." required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Color</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var (val, label) in coloresDisponibles)
+                                {
+                                    <label style="cursor:pointer;display:flex;align-items:center;gap:6px;font-size:.88rem;">
+                                        <input type="radio" name="color" value="@val"
+                                               @(val == "teal" ? "checked" : "") />
+                                        <span class="cd-modulo-card cd-color-@val" style="width:28px;height:28px;border-radius:6px;display:inline-block;overflow:hidden;">
+                                            <span class="cd-modulo-img" style="display:block;width:100%;height:100%;"></span>
+                                        </span>
+                                        @label
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Crear sección</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function cambiarTab(tab, btn) {
+            document.querySelectorAll('.cd-tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.cd-tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function toggleHecho(btn, key) {
+            const done = localStorage.getItem(key) === '1';
+            if (done) {
+                localStorage.removeItem(key);
+                btn.textContent = 'Marcar como hecho';
+                btn.classList.remove('done');
+            } else {
+                localStorage.setItem(key, '1');
+                btn.textContent = '✓ Hecho';
+                btn.classList.add('done');
+            }
+        }
+
+        // Restaurar estado del sílabo al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('btnSilabo');
+            if (btn && localStorage.getItem('silabo_@Model.Id') === '1') {
+                btn.textContent = '✓ Hecho';
+                btn.classList.add('done');
+            }
+        });
+    </script>
+}

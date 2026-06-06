@@ -13,8 +13,8 @@
         <p><strong>Nombre:</strong> @Model.Nombre</p>
         <p><strong>Carrera:</strong> @Model.Carrera</p>
         <p><strong>Semestre:</strong> @Model.Semestre</p>
-        <p><strong>Docente:</strong> @Model.Docente</p>
-        <p><strong>Aula:</strong> @Model.CodigoAula</p>
+        <p><strong>Docente:</strong> @(Model.DocenteUser != null ? $"{Model.DocenteUser.Nombre} {Model.DocenteUser.Apellido}" : "—")</p>
+        <p><strong>Semestre:</strong> @Model.Semestre</p>
     </div>
 </div>
 

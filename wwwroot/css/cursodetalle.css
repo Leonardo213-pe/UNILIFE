@@ -1,0 +1,280 @@
+/* ── Contenedor principal ─────────────────────────── */
+.cd-page {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,.08);
+    overflow: hidden;
+    margin-bottom: 32px;
+}
+
+/* ── Banner superior ──────────────────────────────── */
+.cd-banner {
+    background: linear-gradient(135deg, #a3001d 0%, #6b0014 100%);
+    color: #fff;
+    padding: 32px 36px 24px;
+    position: relative;
+    overflow: hidden;
+}
+.cd-banner::after {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+}
+.cd-banner h1 {
+    font-size: 1.45rem;
+    font-weight: 700;
+    margin: 0 0 6px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.cd-banner p  { margin: 0; opacity: .78; font-size: .92rem; }
+.cd-banner-meta { display: flex; gap: 20px; margin-top: 14px; }
+.cd-banner-meta span {
+    background: rgba(255,255,255,.15);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: .82rem;
+}
+
+/* ── Tabs ─────────────────────────────────────────── */
+.cd-tabs {
+    border-bottom: 1px solid #e8e8e8;
+    padding: 0 28px;
+    display: flex;
+    gap: 0;
+}
+.cd-tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 14px 20px 11px;
+    font-size: .93rem;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+}
+.cd-tab-btn:hover  { color: #a3001d; }
+.cd-tab-btn.active { color: #a3001d; border-bottom-color: #a3001d; font-weight: 600; }
+
+/* ── Contenido de tab ─────────────────────────────── */
+.cd-tab-panel { display: none; padding: 28px 32px 36px; }
+.cd-tab-panel.active { display: block; }
+
+/* ── Sección General ──────────────────────────────── */
+.cd-section-title {
+    color: #a3001d;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 16px;
+}
+.cd-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    background: #fafafa;
+}
+.cd-item-icon {
+    font-size: 1.6rem;
+    background: #e53935;
+    border-radius: 8px;
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.cd-item-label { font-weight: 600; font-size: .96rem; letter-spacing: .5px; }
+.cd-item-mark {
+    margin-left: auto;
+    background: none;
+    border: 1px solid #999;
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-size: .82rem;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+}
+.cd-item-mark.done {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+
+/* ── Grid de módulos ──────────────────────────────── */
+.cd-modulos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 8px;
+}
+
+.cd-modulo-card {
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .18s, box-shadow .18s;
+    box-shadow: 0 4px 12px rgba(0,0,0,.12);
+}
+.cd-modulo-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,.18); }
+
+.cd-modulo-nombre {
+    font-size: .9rem;
+    font-weight: 700;
+    padding: 14px 16px 10px;
+    background: #fff;
+    color: #222;
+    letter-spacing: .3px;
+    min-height: 54px;
+}
+.cd-modulo-img {
+    height: 120px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Colores de módulos con patrón abstracto */
+.cd-color-teal   .cd-modulo-img { background: linear-gradient(135deg,#26d0ce,#1a9e83,#0d7a63); }
+.cd-color-blue   .cd-modulo-img { background: linear-gradient(135deg,#667eea,#3b82f6,#1d4ed8); }
+.cd-color-gray   .cd-modulo-img { background: linear-gradient(135deg,#b0bec5,#90a4ae,#607d8b); }
+.cd-color-orange .cd-modulo-img { background: linear-gradient(135deg,#f6d365,#f59e0b,#d97706); }
+.cd-color-pink   .cd-modulo-img { background: linear-gradient(135deg,#f093fb,#ec4899,#be185d); }
+.cd-color-purple .cd-modulo-img { background: linear-gradient(135deg,#a78bfa,#8b5cf6,#6d28d9); }
+.cd-color-red    .cd-modulo-img { background: linear-gradient(135deg,#f87171,#ef4444,#b91c1c); }
+.cd-color-green  .cd-modulo-img { background: linear-gradient(135deg,#6ee7b7,#34d399,#059669); }
+
+/* Patrón decorativo sobre el gradiente */
+.cd-modulo-img::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 70%, rgba(255,255,255,.25) 0%, transparent 60%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,.15) 0%, transparent 50%);
+}
+
+/* Tarjeta de agregar módulo */
+.cd-modulo-add {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 130px;
+    color: #999;
+    font-size: .85rem;
+    transition: border-color .15s, color .15s;
+}
+.cd-modulo-add:hover { border-color: #a3001d; color: #a3001d; }
+.cd-modulo-add span:first-child { font-size: 1.8rem; line-height: 1; }
+
+/* ── Tabla participantes ──────────────────────────── */
+.cd-participantes-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.cd-participantes-table th {
+    background: #f5f5f5;
+    border-bottom: 2px solid #e0e0e0;
+    padding: 10px 16px;
+    text-align: left;
+    font-size: .88rem;
+    color: #555;
+}
+.cd-participantes-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: .92rem;
+}
+.cd-participantes-table tr:last-child td { border-bottom: none; }
+.cd-participantes-table tr:hover td { background: #fafafa; }
+.cd-alumno-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#a3001d,#e53935);
+    color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: .78rem; font-weight: 700;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+/* ── Calificaciones ───────────────────────────────── */
+.cd-notas-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+}
+.cd-notas-table th {
+    background: #f5f5f5;
+    border-bottom: 2px solid #e0e0e0;
+    padding: 10px 12px;
+    text-align: center;
+    color: #555;
+}
+.cd-notas-table th:first-child { text-align: left; min-width: 180px; }
+.cd-notas-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: center;
+    color: #888;
+}
+.cd-notas-table td:first-child { text-align: left; color: #333; font-weight: 500; }
+.cd-notas-table tr:hover td { background: #fafafa; }
+
+/* ── Competencias ─────────────────────────────────── */
+.cd-competencias-box {
+    background: #fafafa;
+    border: 1px solid #e8e8e8;
+    border-radius: 10px;
+    padding: 24px 28px;
+}
+.cd-competencias-box p { color: #555; line-height: 1.7; margin: 0; }
+
+/* ── Horarios flotantes (en panel Curso) ──────────── */
+.cd-horario-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.cd-horario-chip {
+    display: flex; gap: 10px; align-items: center;
+    background: #f5f5f5; border-radius: 8px; padding: 10px 16px;
+    font-size: .85rem; color: #444;
+}
+.cd-horario-chip .tipo-badge {
+    background: #a3001d; color: #fff;
+    border-radius: 4px; padding: 2px 8px; font-size: .75rem; font-weight: 600;
+}
+.cd-horario-chip .tipo-badge.practico { background: #388e3c; }
+
+/* ── Botones agregar actividad ────────────────────── */
+.mod-add-btn {
+    background: none;
+    border: 1.5px solid var(--c, #555);
+    color: var(--c, #555);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+.mod-add-btn:hover {
+    background: var(--c, #555);
+    color: #fff;
+}
+
+/* ── Acciones flotantes ───────────────────────────── */
+.cd-actions { display: flex; gap: 10px; padding: 0 32px 20px; }
+.cd-btn-volver {
+    background: none; border: 1px solid #ccc; border-radius: 8px;
+    padding: 7px 18px; font-size: .88rem; cursor: pointer; color: #555;
+    text-decoration: none; display: inline-block; transition: border-color .15s;
+}
+.cd-btn-volver:hover { border-color: #a3001d; color: #a3001d; }
