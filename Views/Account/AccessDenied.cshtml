@@ -10,12 +10,8 @@
     {
         <a asp-controller="Coordinador" asp-action="Index" class="btn btn-primary">Volver a mi panel</a>
     }
-    else if (User.IsInRole("Docente"))
+    else
     {
-        <a asp-controller="Docente" asp-action="Index" class="btn btn-primary">Volver a mi panel</a>
-    }
-    else if (User.IsInRole("Alumno"))
-    {
-        <a asp-controller="Alumno" asp-action="Index" class="btn btn-primary">Volver a mi panel</a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Volver al inicio</a>
     }
 </div>
