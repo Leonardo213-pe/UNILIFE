@@ -7,10 +7,10 @@ Sistema web desarrollado con ASP.NET Core MVC para la gestión de la vida univer
 ## Información del proyecto
 
 **URL del sistema**
-https://unilife-dgal.onrender.com/
+https://unilife-shum.onrender.com/
 
 **Repositorio**
-https://github.com/vyordan347-cpu/Unilife.git
+https://github.com/Leonardo213-pe/UNILIFE.git
 
 ---
 
