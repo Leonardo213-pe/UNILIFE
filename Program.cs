@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 using System.Text;
 using Unilife.Data;
 using Unilife.Models;
@@ -16,6 +18,24 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// ── Redis ─────────────────────────────────────────────────
+var redisUrl = builder.Configuration["Redis:Url"]!;
+var redis    = ConnectionMultiplexer.Connect(redisUrl);
+builder.Services.AddSingleton<IConnectionMultiplexer>(redis);
+
+// Cache distribuido en Redis (para datos de app)
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.ConfigurationOptions = ConfigurationOptions.Parse(redisUrl);
+    options.InstanceName         = "UniLife:Cache:";
+});
+
+// Data Protection con llaves persistidas en Redis
+builder.Services.AddDataProtection()
+    .PersistKeysToStackExchangeRedis(redis, "UniLife:DataProtection:Keys")
+    .SetApplicationName("UniLife");
+
+// ── Identity ──────────────────────────────────────────────
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Lockout.MaxFailedAccessAttempts = 5;
@@ -28,11 +48,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 // ── Cookie auth (MVC web) ─────────────────────────────────
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath        = "/Account/Login";
-    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.LoginPath         = "/Account/Login";
+    options.AccessDeniedPath  = "/Account/AccessDenied";
     options.SlidingExpiration = true;
-    options.ExpireTimeSpan   = TimeSpan.FromHours(8);
-    // API calls devuelven 401 en lugar de redirigir al login
+    options.ExpireTimeSpan    = TimeSpan.FromHours(8);
     options.Events.OnRedirectToLogin = ctx =>
     {
         if (ctx.Request.Path.StartsWithSegments("/api"))
@@ -76,11 +95,10 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title   = "UniLife API",
-        Version = "v1",
+        Title       = "UniLife API",
+        Version     = "v1",
         Description = "API REST para la plataforma universitaria UniLife"
     });
-
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT en el header Authorization. Ejemplo: **Bearer {token}**",
@@ -89,7 +107,6 @@ builder.Services.AddSwaggerGen(c =>
         Type        = SecuritySchemeType.ApiKey,
         Scheme      = "Bearer"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -102,7 +119,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ── CORS (para clientes externos que consuman la API) ─────
+// ── CORS ──────────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ApiPolicy", policy =>
@@ -120,7 +137,6 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// Swagger solo en desarrollo
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -140,7 +156,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
-app.MapControllers(); // mapea los ApiControllers
+app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -151,7 +167,6 @@ using (var scope = app.Services.CreateScope())
 
     await SeedData.InicializarAsync(services);
 
-    // Invalida todas las sesiones activas al reiniciar la app
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     foreach (var usuario in userManager.Users.ToList())
         await userManager.UpdateSecurityStampAsync(usuario);
