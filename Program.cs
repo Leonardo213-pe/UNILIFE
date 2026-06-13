@@ -19,14 +19,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ── Redis ─────────────────────────────────────────────────
-var redisUrl = builder.Configuration["Redis:Url"]!;
-var redis    = ConnectionMultiplexer.Connect(redisUrl);
+var redisUrl    = builder.Configuration["Redis:Url"]!;
+var redisConfig = ConfigurationOptions.Parse(redisUrl);
+redisConfig.AbortOnConnectFail = false;
+var redis = ConnectionMultiplexer.Connect(redisConfig);
 builder.Services.AddSingleton<IConnectionMultiplexer>(redis);
 
 // Cache distribuido en Redis (para datos de app)
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.ConfigurationOptions = ConfigurationOptions.Parse(redisUrl);
+    options.ConfigurationOptions = redisConfig;
     options.InstanceName         = "UniLife:Cache:";
 });
 
