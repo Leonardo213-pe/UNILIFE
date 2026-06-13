@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using StackExchange.Redis;
 using System.Text;
 using Unilife.Data;
 using Unilife.Models;
@@ -18,26 +16,6 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ── Redis ─────────────────────────────────────────────────
-var redisUrl    = builder.Configuration["Redis:Url"]!;
-var redisConfig = ConfigurationOptions.Parse(redisUrl);
-redisConfig.AbortOnConnectFail = false;
-var redis = ConnectionMultiplexer.Connect(redisConfig);
-builder.Services.AddSingleton<IConnectionMultiplexer>(redis);
-
-// Cache distribuido en Redis (para datos de app)
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.ConfigurationOptions = redisConfig;
-    options.InstanceName         = "UniLife:Cache:";
-});
-
-// Data Protection con llaves persistidas en Redis
-builder.Services.AddDataProtection()
-    .PersistKeysToStackExchangeRedis(redis, "UniLife:DataProtection:Keys")
-    .SetApplicationName("UniLife");
-
-// ── Identity ──────────────────────────────────────────────
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Lockout.MaxFailedAccessAttempts = 5;
