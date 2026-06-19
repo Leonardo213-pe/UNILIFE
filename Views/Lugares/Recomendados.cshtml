@@ -1,0 +1,58 @@
+@model IEnumerable<Unilife.Models.Lugar>
+
+@{
+    ViewData["Title"] = "Lugares recomendados";
+}
+
+<link rel="stylesheet" href="~/css/tareas.css" asp-append-version="true" />
+
+<div class="tareas-page">
+    <div class="tareas-header">
+        <div>
+            <h1><i class="bi bi-stars"></i> Lugares recomendados para ti</h1>
+            <p style="color:var(--text-muted); margin:4px 0 0;">Basado en tus valoraciones y las de estudiantes similares.</p>
+        </div>
+        <a asp-action="Index" class="btn-cancelar">← Ver todos los lugares</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">🗺️</div>
+            <p>Valora algunos lugares primero para recibir recomendaciones personalizadas.</p>
+            <a asp-action="Index" style="color:var(--accent);">Ir a Lugares →</a>
+        </div>
+    }
+    else
+    {
+        <div class="tareas-grid">
+            @foreach (var item in Model)
+            {
+                string icono = item.Tipo switch {
+                    "Biblioteca"      => "📖",
+                    "Coworking"       => "💻",
+                    "Zona de estudio" => "📚",
+                    _                 => "☕"
+                };
+
+                <div class="tarea-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:28px;">@icono</span>
+                        <span class="badge-estado badge-completada">⭐ @item.Calificacion</span>
+                    </div>
+
+                    <div class="tarea-titulo">@item.Nombre</div>
+                    <div class="tarea-meta"><i class="bi bi-tag"></i> @item.Tipo</div>
+                    <div class="tarea-meta"><i class="bi bi-geo-alt"></i> @item.Distancia km · @item.Direccion</div>
+                    <div class="tarea-meta" style="font-size:11px; color:var(--text-muted);">@item.Descripcion</div>
+
+                    <div class="tarea-footer">
+                        <span class="badge-prioridad">💲 S/ @item.PrecioPromedio</span>
+                        <a asp-controller="Lugares" asp-action="Details" asp-route-id="@item.Id"
+                           style="font-size:12px; color:var(--accent); font-weight:600;">Ver detalle →</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

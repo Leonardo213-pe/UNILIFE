@@ -56,18 +56,45 @@
                     <a class="menu-link @Activo("Home")" asp-controller="Home" asp-action="Index">
                         <i class="bi bi-house-fill"></i> Inicio
                     </a>
+                    @if (!esDocente)
+                    {
+                        <a class="menu-link @Activo("Alumno")" asp-controller="Alumno" asp-action="Index">
+                            <i class="bi bi-person-badge-fill"></i> Mi Dashboard
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="menu-link @Activo("Docente")" asp-controller="Docente" asp-action="Index">
+                            <i class="bi bi-person-badge-fill"></i> Mi Dashboard
+                        </a>
+                    }
                     <a class="menu-link @Activo("Cursos")" asp-controller="Cursos" asp-action="Index">
                         <i class="bi bi-book-fill"></i> Cursos
                     </a>
                     @if (!esDocente)
                     {
-                        <a class="menu-link @Activo("Lugares")" asp-controller="Lugares" asp-action="Index">
+                        <a class="menu-link @Activo("Lugares","Index")" asp-controller="Lugares" asp-action="Index">
                             <i class="bi bi-geo-alt-fill"></i> Lugares
                         </a>
+                        <a class="menu-link @Activo("Lugares","Recomendados")" asp-controller="Lugares" asp-action="Recomendados" style="padding-left:28px; font-size:13px;">
+                            <i class="bi bi-stars"></i> Para ti
+                        </a>
                     }
-                    <a class="menu-link @Activo("Eventos")" asp-controller="Eventos" asp-action="Index">
+                    <a class="menu-link @Activo("Eventos","Index")" asp-controller="Eventos" asp-action="Index">
                         <i class="bi bi-calendar-event-fill"></i> Eventos
                     </a>
+                    @if (!esDocente)
+                    {
+                        <a class="menu-link @Activo("Eventos","Recomendados")" asp-controller="Eventos" asp-action="Recomendados" style="padding-left:28px; font-size:13px;">
+                            <i class="bi bi-calendar-heart-fill"></i> Para ti
+                        </a>
+                    }
+                    @if (!esDocente)
+                    {
+                        <a class="menu-link @Activo("Tareas")" asp-controller="Tareas" asp-action="Index">
+                            <i class="bi bi-check2-square"></i> Tareas
+                        </a>
+                    }
                     <a class="menu-link @Activo("Account")" asp-controller="Account" asp-action="Perfil">
                         <i class="bi bi-person-fill"></i> Perfil
                         @await Component.InvokeAsync("NotifBadge")

@@ -6,10 +6,43 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Unilife.Data;
 using Unilife.Models;
+using Unilife.Services;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ── Redis (cache distribuido) ─────────────────────────────
+var redisUrl = builder.Configuration.GetConnectionString("Redis")
+               ?? Environment.GetEnvironmentVariable("REDIS_URL");
+
+if (!string.IsNullOrEmpty(redisUrl))
+{
+    try
+    {
+        // Render entrega la URL como redis://host:port
+        var uri = new Uri(redisUrl);
+        var redisConn = $"{uri.Host}:{uri.Port},abortConnect=false,connectTimeout=5000,syncTimeout=5000,ssl=false";
+
+        // Si trae contraseña: redis://:password@host:port
+        if (!string.IsNullOrEmpty(uri.UserInfo) && uri.UserInfo.StartsWith(":"))
+            redisConn = $"{uri.Host}:{uri.Port},password={Uri.UnescapeDataString(uri.UserInfo[1..])},abortConnect=false,connectTimeout=5000,syncTimeout=5000,ssl=false";
+
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConn;
+            options.InstanceName   = "UniLife:";
+        });
+    }
+    catch
+    {
+        builder.Services.AddDistributedMemoryCache();
+    }
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
 
 builder.Services.AddControllersWithViews();
 
@@ -98,6 +131,11 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+// ── Servicios de recomendación (singleton — modelo cacheado) ─
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<RecomendadorLugaresService>();
+builder.Services.AddSingleton<RecomendadorEventosService>();
 
 // ── CORS ──────────────────────────────────────────────────
 builder.Services.AddCors(options =>

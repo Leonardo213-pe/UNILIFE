@@ -1,0 +1,190 @@
+@using Unilife.Models
+@{
+    ViewData["Title"] = "Mi Dashboard";
+    var usuario  = ViewBag.Usuario         as ApplicationUser;
+    var cursos   = ViewBag.Cursos          as List<Curso>  ?? new();
+    var eventos  = ViewBag.EventosProximos as List<Evento> ?? new();
+}
+
+<link rel="stylesheet" href="~/css/tareas.css" asp-append-version="true" />
+
+<style>
+.dash-page     { padding: 32px 40px; }
+.dash-bienvenida {
+    background: linear-gradient(135deg, #1e3a5f, #2563eb);
+    border-radius: 16px;
+    padding: 28px 32px;
+    color: #fff;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.dash-bienvenida h1 { font-size: 24px; font-weight: 800; margin: 0; }
+.dash-bienvenida p  { margin: 4px 0 0; opacity: .85; }
+.metricas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+}
+.metrica-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    text-align: center;
+}
+.metrica-num   { font-size: 28px; font-weight: 800; color: #2563eb; }
+.metrica-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.dash-grid  { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; }
+@@media (max-width: 768px) { .dash-grid { grid-template-columns: 1fr; } }
+.dash-section {
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 20px;
+    border: 1px solid var(--border);
+}
+.section-title {
+    font-size: 16px; font-weight: 700; color: var(--text-main);
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.section-link { font-size: 12px; color: #2563eb; font-weight: 600; margin-left: auto; text-decoration: none; }
+.curso-row {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.curso-row:last-child { border-bottom: none; }
+.curso-row-info { flex: 1; }
+.curso-nombre { font-size: 13px; font-weight: 700; color: var(--text-main); }
+.curso-sub    { font-size: 11px; color: var(--text-muted); }
+.curso-badge  {
+    font-size: 11px; font-weight: 600;
+    background: rgba(37,99,235,.12); color: #2563eb;
+    padding: 3px 10px; border-radius: 12px;
+}
+.acceso-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.acceso-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-app); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    text-decoration: none; color: var(--text-main);
+    font-size: 13px; font-weight: 600;
+    transition: border-color .2s;
+}
+.acceso-btn:hover { border-color: #2563eb; color: #2563eb; }
+.evento-mini {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+}
+.evento-mini:last-child { border-bottom: none; }
+.evento-titulo { font-weight: 600; color: var(--text-main); }
+.evento-sub    { color: var(--text-muted); }
+</style>
+
+<div class="dash-page">
+
+    <div class="dash-bienvenida">
+        <div>
+            <h1>¡Hola, @(usuario?.Nombre ?? "Docente")! 👋</h1>
+            <p>Panel docente — UniLife</p>
+        </div>
+        <div style="text-align:center;">
+            <div style="font-size:32px; font-weight:900; line-height:1;">@(cursos.Sum(c => c.Participantes.Count))</div>
+            <div style="font-size:12px; opacity:.85;">alumnos en total</div>
+        </div>
+    </div>
+
+    <div class="metricas-grid">
+        <div class="metrica-card">
+            <div class="metrica-num">@ViewBag.TotalCursos</div>
+            <div class="metrica-label">Mis cursos</div>
+        </div>
+        <div class="metrica-card">
+            <div class="metrica-num">@ViewBag.TotalAlumnos</div>
+            <div class="metrica-label">Alumnos</div>
+        </div>
+        <div class="metrica-card">
+            <div class="metrica-num">@ViewBag.TotalModulos</div>
+            <div class="metrica-label">Módulos</div>
+        </div>
+        <div class="metrica-card">
+            <div class="metrica-num">@eventos.Count</div>
+            <div class="metrica-label">Eventos próximos</div>
+        </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="acceso-grid" style="margin-bottom:24px;">
+        <a asp-controller="Cursos" asp-action="Index" class="acceso-btn">
+            <i class="bi bi-book-fill" style="font-size:18px; color:#2563eb;"></i> Mis cursos
+        </a>
+        <a asp-controller="Eventos" asp-action="Index" class="acceso-btn">
+            <i class="bi bi-calendar-event-fill" style="font-size:18px; color:#2563eb;"></i> Eventos
+        </a>
+        <a asp-controller="Account" asp-action="Perfil" class="acceso-btn">
+            <i class="bi bi-person-fill" style="font-size:18px; color:#2563eb;"></i> Mi perfil
+        </a>
+        <a asp-controller="Home" asp-action="Index" class="acceso-btn">
+            <i class="bi bi-house-fill" style="font-size:18px; color:#2563eb;"></i> Inicio
+        </a>
+    </div>
+
+    <div class="dash-grid">
+        <!-- Mis cursos -->
+        <div class="dash-section">
+            <div class="section-title">
+                <i class="bi bi-book-fill"></i> Mis cursos
+                <a asp-controller="Cursos" asp-action="Index" class="section-link">Ver todos →</a>
+            </div>
+            @if (!cursos.Any())
+            {
+                <p style="color:var(--text-muted); font-size:13px;">No tienes cursos asignados.</p>
+            }
+            else
+            {
+                @foreach (var c in cursos)
+                {
+                    var h = c.Horarios.FirstOrDefault();
+                    <div class="curso-row">
+                        <i class="bi bi-journal-text" style="color:#2563eb; font-size:20px;"></i>
+                        <div class="curso-row-info">
+                            <div class="curso-nombre">@c.Nombre</div>
+                            <div class="curso-sub">@c.Carrera · Semestre @c.Semestre · @(h != null ? $"{h.Dia} {h.HoraInicio:hh\\:mm}" : "Sin horario")</div>
+                        </div>
+                        <span class="curso-badge">@c.Participantes.Count alumnos</span>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Eventos próximos -->
+        <div class="dash-section">
+            <div class="section-title">
+                <i class="bi bi-calendar3"></i> Próximos eventos
+                <a asp-controller="Eventos" asp-action="Index" class="section-link">Ver todos →</a>
+            </div>
+            @if (!eventos.Any())
+            {
+                <p style="color:var(--text-muted); font-size:13px;">Sin eventos en los próximos 14 días.</p>
+            }
+            else
+            {
+                @foreach (var ev in eventos)
+                {
+                    <div class="evento-mini">
+                        <div class="evento-titulo">@ev.Titulo</div>
+                        <div class="evento-sub">@ev.Fecha.ToString("dd MMM") · @ev.Lugar · @ev.TipoEvento</div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+</div>

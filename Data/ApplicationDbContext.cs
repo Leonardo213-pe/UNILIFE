@@ -20,10 +20,21 @@ namespace Unilife.Data
         public DbSet<CarreraRegistrada> CarrerasRegistradas { get; set; }
         public DbSet<Modulo> Modulos { get; set; }
         public DbSet<Actividad> Actividades { get; set; }
+        public DbSet<ValoracionLugar> ValoracionesLugar { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<ValoracionLugar>()
+                .HasIndex(v => new { v.UsuarioId, v.LugarId })
+                .IsUnique();
+
+            builder.Entity<ValoracionLugar>()
+                .HasOne(v => v.Lugar)
+                .WithMany()
+                .HasForeignKey(v => v.LugarId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<CursoAlumno>()
                 .HasKey(ca => new { ca.CursoId, ca.AlumnoId });

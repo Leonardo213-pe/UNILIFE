@@ -1,0 +1,25 @@
+@model Unilife.Models.Tarea
+
+@{
+    ViewData["Title"] = "Eliminar Tarea";
+}
+
+<link rel="stylesheet" href="~/css/tareas.css" asp-append-version="true" />
+
+<div class="tareas-page">
+    <div class="delete-card">
+        <div class="delete-icon">🗑️</div>
+        <h2>¿Eliminar esta tarea?</h2>
+        <p>
+            <strong>@Model.Titulo</strong><br />
+            Curso: @Model.Curso · Límite: @Model.FechaEntrega.ToString("dd MMM yyyy")
+        </p>
+        <p style="color:#ef4444; font-size:13px;">Esta acción no se puede deshacer.</p>
+
+        <form asp-action="Delete" method="post" class="d-flex gap-2 justify-content-center">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn-confirmar-delete">Sí, eliminar</button>
+            <a asp-action="Index" class="btn-cancelar">Cancelar</a>
+        </form>
+    </div>
+</div>

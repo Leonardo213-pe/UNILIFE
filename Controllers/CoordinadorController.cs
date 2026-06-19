@@ -41,7 +41,7 @@ namespace Unilife.Controllers
                 TotalEventos = await _context.Eventos.CountAsync(),
                 TotalLugares = await _context.Lugares.CountAsync(),
                 TareasTotales = tareas.Count,
-                TareasCompletadas = tareas.Count(t => t.Completada),
+                TareasCompletadas = tareas.Count(t => t.Estado == "Completada"),
                 EventosProximos = await _context.Eventos.CountAsync(e => e.Fecha >= hoy && e.Fecha <= hoy.AddDays(7)),
                 CursosConAlumnos = cursos.Count(c => c.Participantes.Any()),
                 TotalInscripciones = cursos.Sum(c => c.Participantes.Count),

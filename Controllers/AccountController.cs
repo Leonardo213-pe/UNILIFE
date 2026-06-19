@@ -174,7 +174,7 @@ namespace Unilife.Controllers
                     .ToListAsync();
 
                 modelo.TareasProximas = await _context.Tareas
-                    .Where(t => t.UsuarioId == usuario.Id && !t.Completada)
+                    .Where(t => t.UsuarioId == usuario.Id && t.Estado != "Completada")
                     .OrderBy(t => t.FechaEntrega)
                     .Take(5)
                     .ToListAsync();

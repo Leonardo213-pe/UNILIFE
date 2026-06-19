@@ -32,7 +32,7 @@ namespace Unilife.ViewComponents
             {
                 // Alumno: tareas vencidas o próximas (en los próximos 3 días)
                 count = await _context.Tareas
-                    .CountAsync(t => t.UsuarioId == userId && !t.Completada
+                    .CountAsync(t => t.UsuarioId == userId && t.Estado != "Completada"
                                   && t.FechaEntrega >= hoy && t.FechaEntrega <= hoy.AddDays(3));
             }
             else

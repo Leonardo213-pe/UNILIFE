@@ -1,0 +1,77 @@
+@model IEnumerable<Unilife.Models.Evento>
+
+@{
+    ViewData["Title"] = "Eventos recomendados";
+}
+
+<link rel="stylesheet" href="~/css/tareas.css" asp-append-version="true" />
+
+<div class="tareas-page">
+    <div class="tareas-header">
+        <div>
+            <h1><i class="bi bi-calendar-heart-fill"></i> Eventos recomendados para ti</h1>
+            <p style="color:var(--text-muted); margin:4px 0 0;">Seleccionados según tu carrera y los próximos en tu agenda.</p>
+        </div>
+        <a asp-action="Index" class="btn-cancelar">← Ver todos los eventos</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <p>No hay eventos próximos disponibles por ahora.</p>
+        </div>
+    }
+    else
+    {
+        <div class="tareas-grid">
+            @foreach (var e in Model)
+            {
+                string tipoIcon = e.TipoEvento switch {
+                    "Taller"    => "🔧",
+                    "Hackathon" => "💻",
+                    "Charla"    => "🎤",
+                    "Congreso"  => "🏛️",
+                    "Feria"     => "🎪",
+                    "Jornada"   => "🩺",
+                    "Cultural"  => "🎭",
+                    "Práctica"  => "⚖️",
+                    "Deporte"   => "⚽",
+                    "Ceremonia" => "🎓",
+                    _           => "📌"
+                };
+
+                bool esProximo = (e.Fecha - DateTime.Today).TotalDays <= 7;
+
+                <div class="tarea-card @(esProximo ? "" : "")">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:26px;">@tipoIcon</span>
+                        @if (esProximo)
+                        {
+                            <span class="badge-estado badge-pendiente">Próximo</span>
+                        }
+                        else if (e.EsGeneral)
+                        {
+                            <span class="badge-estado badge-enprogreso">General</span>
+                        }
+                        else
+                        {
+                            <span class="badge-estado badge-completada">@e.Carrera?.Split(' ').FirstOrDefault()</span>
+                        }
+                    </div>
+
+                    <div class="tarea-titulo">@e.Titulo</div>
+                    <div class="tarea-meta"><i class="bi bi-calendar3"></i> @e.Fecha.ToString("dd MMM yyyy") — @e.Hora.ToString(@"hh\:mm")</div>
+                    <div class="tarea-meta"><i class="bi bi-geo-alt"></i> @e.Lugar</div>
+                    <div class="tarea-meta" style="font-size:11px; color:var(--text-muted);">@e.Descripcion</div>
+
+                    <div class="tarea-footer">
+                        <span class="badge-prioridad">@e.TipoEvento</span>
+                        <a asp-controller="Eventos" asp-action="Details" asp-route-id="@e.Id"
+                           style="font-size:12px; color:var(--accent); font-weight:600;">Ver detalle →</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,65 @@
+@model Unilife.Models.Tarea
+
+@{
+    ViewData["Title"] = "Editar Tarea";
+}
+
+<link rel="stylesheet" href="~/css/tareas.css" asp-append-version="true" />
+
+<div class="tareas-page">
+    <div class="form-card">
+        <h1><i class="bi bi-pencil-square"></i> Editar tarea</h1>
+
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Titulo" class="form-label">Título</label>
+                <input asp-for="Titulo" class="form-control" />
+                <span asp-validation-for="Titulo" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Curso" class="form-label">Curso</label>
+                <input asp-for="Curso" class="form-control" />
+                <span asp-validation-for="Curso" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-sm-6">
+                    <label asp-for="FechaEntrega" class="form-label">Fecha límite</label>
+                    <input asp-for="FechaEntrega" class="form-control" type="date" />
+                    <span asp-validation-for="FechaEntrega" class="text-danger small"></span>
+                </div>
+                <div class="col-sm-6">
+                    <label asp-for="Prioridad" class="form-label">Prioridad</label>
+                    <select asp-for="Prioridad" class="form-select">
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Baja">Baja</option>
+                    </select>
+                    <span asp-validation-for="Prioridad" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Estado" class="form-label">Estado</label>
+                <select asp-for="Estado" class="form-select">
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="EnProgreso">En progreso</option>
+                    <option value="Completada">Completada</option>
+                </select>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn-guardar">Guardar cambios</button>
+                <a asp-action="Index" class="btn-cancelar">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

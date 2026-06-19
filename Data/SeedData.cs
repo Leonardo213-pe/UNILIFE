@@ -413,6 +413,65 @@ namespace Unilife.Data
             var tareasEjemplo = new[] { "Entrega proyecto final", "Leer capítulo 5", "Resolver ejercicios", "Quiz de lógica" };
             var tareasViejas  = context.Tareas.Where(t => tareasEjemplo.Contains(t.Titulo));
             if (await tareasViejas.AnyAsync()) { context.Tareas.RemoveRange(tareasViejas); await context.SaveChangesAsync(); }
+
+            // ----- Valoraciones de lugares (seed idempotente) -----
+            if (!await context.ValoracionesLugar.AnyAsync())
+            {
+                var lugares = await context.Lugares.ToListAsync();
+                if (lugares.Count > 0 && aMaria != null)
+                {
+                    void Valorar(ApplicationUser? u, int lugarIdx, int puntaje)
+                    {
+                        if (u == null || lugarIdx >= lugares.Count) return;
+                        context.ValoracionesLugar.Add(new ValoracionLugar
+                        {
+                            UsuarioId = u.Id,
+                            LugarId   = lugares[lugarIdx].Id,
+                            Puntaje   = puntaje,
+                            FechaValoracion = DateTime.Now
+                        });
+                    }
+
+                    // Biblioteca Central (idx 0)
+                    Valorar(aMaria,   0, 5); Valorar(aPedro, 0, 4); Valorar(aKevin, 0, 5);
+                    Valorar(aSofia,   0, 4); Valorar(aLuis,  0, 5); Valorar(aCamila, 0, 4);
+
+                    // Cafetería Central (idx 1)
+                    Valorar(aMaria,   1, 4); Valorar(aPedro, 1, 3); Valorar(aAndres, 1, 4);
+                    Valorar(aValeria, 1, 5); Valorar(aDiego, 1, 4); Valorar(aJoseM,  1, 3);
+
+                    // Lab Cómputo 1 (idx 2)
+                    Valorar(aMaria,   2, 5); Valorar(aKevin, 2, 5); Valorar(aPedro,  2, 4);
+                    Valorar(aAndres,  2, 4); Valorar(aAnaR,  2, 5);
+
+                    // Lab Cómputo 2 (idx 3)
+                    Valorar(aKevin,   3, 4); Valorar(aMiguelS, 3, 4); Valorar(aRafael, 3, 5);
+
+                    // Sala Estudios A (idx 4)
+                    Valorar(aCamila,  4, 5); Valorar(aFernanda, 4, 5); Valorar(aSebastian, 4, 4);
+                    Valorar(aMaria,   4, 5); Valorar(aGabriela, 4, 4);
+
+                    // Sala Estudios B (idx 5)
+                    Valorar(aDaniela, 5, 4); Valorar(aPablo, 5, 3); Valorar(aValentina, 5, 4);
+
+                    // Coworking (idx 6)
+                    Valorar(aJoseM,   6, 5); Valorar(aAlejandra, 6, 5); Valorar(aNicolas, 6, 4);
+                    Valorar(aPedro,   6, 4); Valorar(aKevin,     6, 5);
+
+                    // Auditorio (idx 7)
+                    Valorar(aMaria,   7, 5); Valorar(aDiego,  7, 5); Valorar(aCamila, 7, 4);
+
+                    // Cancha (idx 8)
+                    Valorar(aPedro,   8, 4); Valorar(aAndres, 8, 5); Valorar(aCarlosR, 8, 4);
+                    Valorar(aRafael,  8, 3);
+
+                    // Centro Médico (idx 9)
+                    Valorar(aLuis,    9, 5); Valorar(aGabriela, 9, 4); Valorar(aAnaMamani, 9, 5);
+                    Valorar(aMarco,   9, 4); Valorar(aIsabela,  9, 5);
+
+                    await context.SaveChangesAsync();
+                }
+            }
         }
     }
 }

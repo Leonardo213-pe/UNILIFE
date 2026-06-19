@@ -40,7 +40,7 @@ public class HomeController : Controller
                 .Where(e => e.Fecha >= hoy && (e.EsGeneral || e.Carrera == carreraUsuario))
                 .ToListAsync();
 
-        var completadas = tareasUsuario.Count(t => t.Completada);
+        var completadas = tareasUsuario.Count(t => t.Estado == "Completada");
         var total = tareasUsuario.Count;
 
         var modelo = new DashboardViewModel
@@ -53,7 +53,7 @@ public class HomeController : Controller
             Progreso    = total == 0 ? 0 : (int)Math.Round(completadas * 100.0 / total),
 
             ProximasTareas = tareasUsuario
-                .Where(t => !t.Completada)
+                .Where(t => t.Estado != "Completada")
                 .OrderBy(t => t.FechaEntrega)
                 .Take(4)
                 .ToList(),

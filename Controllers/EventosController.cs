@@ -4,6 +4,7 @@ using Unilife.Data;
 using Unilife.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Unilife.Services;
 
 namespace Unilife.Controllers
 {
@@ -12,11 +13,23 @@ namespace Unilife.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RecomendadorEventosService _recomendador;
 
-        public EventosController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public EventosController(ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            RecomendadorEventosService recomendador)
         {
-            _context = context;
-            _userManager = userManager;
+            _context      = context;
+            _userManager  = userManager;
+            _recomendador = recomendador;
+        }
+
+        [Authorize(Roles = "Alumno")]
+        public async Task<IActionResult> Recomendados()
+        {
+            var usuario = await _userManager.GetUserAsync(User);
+            var lista   = await _recomendador.ObtenerEventosRecomendadosAsync(usuario?.Carrera, 6);
+            return View(lista);
         }
 
         public async Task<IActionResult> Index(string tipoEvento, string buscar)

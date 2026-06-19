@@ -13,16 +13,19 @@ namespace Unilife.Models
         [Required]
         public string Curso { get; set; } = string.Empty;
 
-        [Display(Name = "Fecha de entrega")]
+        [Display(Name = "Fecha límite")]
         [DataType(DataType.Date)]
         public DateTime FechaEntrega { get; set; }
 
         [Required]
         public string Prioridad { get; set; } = string.Empty;
 
-        public bool Completada { get; set; }
+        [Required]
+        [Display(Name = "Estado")]
+        public string Estado { get; set; } = "Pendiente";
 
-        // Dueño de la tarea (el alumno que la creó)
         public string? UsuarioId { get; set; }
+
+        public bool EsVencida => Estado != "Completada" && FechaEntrega < DateTime.Today;
     }
 }

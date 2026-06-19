@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Unilife.Data;
@@ -11,9 +12,11 @@ using Unilife.Data;
 namespace Unilife.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260619051818_AgregarEstadoTarea")]
+    partial class AgregarEstadoTarea
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -531,37 +534,6 @@ namespace Unilife.Migrations
                     b.ToTable("Tareas");
                 });
 
-            modelBuilder.Entity("Unilife.Models.ValoracionLugar", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("FechaValoracion")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<int>("LugarId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Puntaje")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UsuarioId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LugarId");
-
-                    b.HasIndex("UsuarioId", "LugarId")
-                        .IsUnique();
-
-                    b.ToTable("ValoracionesLugar");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -673,17 +645,6 @@ namespace Unilife.Migrations
                         .IsRequired();
 
                     b.Navigation("Curso");
-                });
-
-            modelBuilder.Entity("Unilife.Models.ValoracionLugar", b =>
-                {
-                    b.HasOne("Unilife.Models.Lugar", "Lugar")
-                        .WithMany()
-                        .HasForeignKey("LugarId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Lugar");
                 });
 
             modelBuilder.Entity("Unilife.Models.Curso", b =>

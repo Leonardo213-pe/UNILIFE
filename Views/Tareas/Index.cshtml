@@ -1,0 +1,79 @@
+@model IEnumerable<Unilife.Models.Tarea>
+
+@{
+    ViewData["Title"] = "Mis Tareas";
+    string filtro = ViewBag.EstadoFiltro ?? "";
+
+    string BadgeClass(string estado) => estado switch {
+        "EnProgreso"  => "badge-enprogreso",
+        "Completada"  => "badge-completada",
+        _             => "badge-pendiente"
+    };
+
+    string BadgeLabel(string estado) => estado switch {
+        "EnProgreso" => "En progreso",
+        "Completada" => "Completada",
+        _            => "Pendiente"
+    };
+}
+
+<link rel="stylesheet" href="~/css/tareas.css" asp-append-version="true" />
+
+<div class="tareas-page">
+
+    <div class="tareas-header">
+        <div>
+            <h1><i class="bi bi-check2-square"></i> Mis Tareas</h1>
+            <p>Gestiona y organiza tus tareas académicas.</p>
+        </div>
+        <a asp-action="Create" class="btn-crear">+ Nueva tarea</a>
+    </div>
+
+    <div class="filtros-tab">
+        <a asp-action="Index" class="filtro-btn @(filtro == "" ? "active" : "")">Todas</a>
+        <a asp-action="Index" asp-route-estado="Pendiente"  class="filtro-btn @(filtro == "Pendiente"  ? "active" : "")">Pendiente</a>
+        <a asp-action="Index" asp-route-estado="EnProgreso" class="filtro-btn @(filtro == "EnProgreso" ? "active" : "")">En progreso</a>
+        <a asp-action="Index" asp-route-estado="Completada" class="filtro-btn @(filtro == "Completada" ? "active" : "")">Completadas</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>No hay tareas @(filtro != "" ? $"con estado «{BadgeLabel(filtro)}»" : "registradas").</p>
+        </div>
+    }
+    else
+    {
+        <div class="tareas-grid">
+            @foreach (var t in Model)
+            {
+                <div class="tarea-card @(t.EsVencida ? "vencida" : "")">
+
+                    @if (t.EsVencida)
+                    {
+                        <div class="vencida-badge"><i class="bi bi-exclamation-triangle-fill"></i> Vencida</div>
+                    }
+
+                    <div class="tarea-titulo">@t.Titulo</div>
+                    <div class="tarea-meta"><i class="bi bi-book"></i> @t.Curso</div>
+                    <div class="tarea-meta @(t.EsVencida ? "alerta" : "")">
+                        <i class="bi bi-calendar3"></i>
+                        Límite: @t.FechaEntrega.ToString("dd MMM yyyy")
+                    </div>
+
+                    <div class="tarea-footer">
+                        <span class="badge-estado @BadgeClass(t.Estado)">@BadgeLabel(t.Estado)</span>
+                        <span class="badge-prioridad">@t.Prioridad</span>
+                    </div>
+
+                    <div class="tarea-acciones">
+                        <a asp-action="Edit"   asp-route-id="@t.Id" class="btn-edit">Editar</a>
+                        <a asp-action="Delete" asp-route-id="@t.Id" class="btn-delete">Eliminar</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</div>

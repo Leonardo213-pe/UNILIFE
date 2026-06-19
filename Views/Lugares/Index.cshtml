@@ -2,6 +2,11 @@
 
 @{
     ViewData["Title"] = "Lugares";
+    var promedios       = ViewBag.Promedios       as Dictionary<int, (double Promedio, int Total)> ?? new();
+    var misValoraciones = ViewBag.MisValoraciones  as Dictionary<int, int>                         ?? new();
+    bool esCoordinador  = User.IsInRole("Coordinador");
+    bool esDocente      = User.IsInRole("Docente");
+    bool puedeValorar   = !esCoordinador && !esDocente;
 }
 
 <h1 class="page-title">Lugares cercanos</h1>
@@ -12,44 +17,82 @@
 </form>
 
 <div class="d-flex flex-wrap gap-2 mb-4">
-    <a asp-action="Index" class="filter-btn active">Todos</a>
-    <a asp-action="Index" asp-route-tipo="Cafetería" class="filter-btn">☕ Cafeterías</a>
-    <a asp-action="Index" asp-route-tipo="Biblioteca" class="filter-btn">📖 Bibliotecas</a>
-    <a asp-action="Index" asp-route-tipo="Coworking" class="filter-btn">💻 Coworking</a>
-    <a asp-action="Index" asp-route-tipo="Zona de estudio" class="filter-btn">📚 Zonas de estudio</a>
+    <a asp-action="Index" class="filter-btn @(string.IsNullOrEmpty(ViewBag.Tipo as string) ? "active" : "")">Todos</a>
+    <a asp-action="Index" asp-route-tipo="Cafetería"       class="filter-btn @(ViewBag.Tipo == "Cafetería"       ? "active" : "")">☕ Cafeterías</a>
+    <a asp-action="Index" asp-route-tipo="Biblioteca"      class="filter-btn @(ViewBag.Tipo == "Biblioteca"      ? "active" : "")">📖 Bibliotecas</a>
+    <a asp-action="Index" asp-route-tipo="Coworking"       class="filter-btn @(ViewBag.Tipo == "Coworking"       ? "active" : "")">💻 Coworking</a>
+    <a asp-action="Index" asp-route-tipo="Zona de estudio" class="filter-btn @(ViewBag.Tipo == "Zona de estudio" ? "active" : "")">📚 Zonas de estudio</a>
 </div>
 
 <div class="row g-4">
     @foreach (var item in Model)
     {
-        string icono = "☕";
+        string icono = item.Tipo switch {
+            "Biblioteca"      => "📖",
+            "Coworking"       => "💻",
+            "Zona de estudio" => "📚",
+            _                 => "☕"
+        };
 
-        if (item.Tipo == "Biblioteca") icono = "📖";
-        else if (item.Tipo == "Coworking") icono = "💻";
-        else if (item.Tipo == "Zona de estudio") icono = "📚";
+        bool tienePromedio = promedios.TryGetValue(item.Id, out var prom);
+        int miPuntaje = misValoraciones.TryGetValue(item.Id, out int mp) ? mp : 0;
 
         <div class="col-md-4">
             <div class="place-card">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-start">
                     <div class="place-icon">@icono</div>
-                    <div class="rating-badge">⭐ @item.Calificacion</div>
+                    <div class="text-end">
+                        <div class="rating-badge">⭐ @item.Calificacion</div>
+                        @if (tienePromedio)
+                        {
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                                comunidad: @prom.Promedio.ToString("0.0") (@prom.Total)
+                            </div>
+                        }
+                    </div>
                 </div>
 
                 <h5 class="place-title">@item.Nombre</h5>
                 <p class="place-description">@item.Descripcion</p>
 
                 <div class="place-footer">
-                    <span>📍 @item.Distancia</span>
+                    <span>📍 @item.Distancia km</span>
                     <span>💲 S/ @item.PrecioPromedio</span>
                 </div>
 
+                @if (puedeValorar)
+                {
+                    <div class="star-rating-widget mt-2">
+                        <span style="font-size:12px; color:var(--text-muted);">Tu valoración:</span>
+                        <div class="d-flex gap-1 mt-1 flex-wrap">
+                            @for (int s = 1; s <= 5; s++)
+                            {
+                                int star = s;
+                                <form asp-action="Valorar" method="post" class="d-inline">
+                                    <input type="hidden" name="lugarId" value="@item.Id" />
+                                    <input type="hidden" name="puntaje" value="@star" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="star-btn @(miPuntaje >= star ? "filled" : "")"
+                                            title="@star estrellas">
+                                        @(miPuntaje >= star ? "★" : "☆")
+                                    </button>
+                                </form>
+                            }
+                            @if (miPuntaje > 0)
+                            {
+                                <span style="font-size:11px; color:var(--text-muted); align-self:center;">(@miPuntaje/5)</span>
+                            }
+                        </div>
+                    </div>
+                }
+
                 <div class="d-flex gap-2 mt-3">
                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm w-100">Ver</a>
-
-                    @if (User.IsInRole("Coordinador"))
+                    @if (esCoordinador)
                     {
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning btn-sm w-100">Editar</a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm w-100">Eliminar</a>
+                        <a asp-action="Edit"   asp-route-id="@item.Id" class="btn btn-outline-warning btn-sm w-100">Editar</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger  btn-sm w-100">Eliminar</a>
                     }
                 </div>
             </div>
@@ -57,9 +100,26 @@
     }
 </div>
 
-@if (User.IsInRole("Coordinador"))
+@if (esCoordinador)
 {
     <div class="mt-4">
         <a asp-action="Create" class="btn btn-danger px-4">+ Crear lugar</a>
     </div>
+}
+
+@section Scripts {
+<style>
+    .star-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: var(--text-muted);
+        padding: 0 1px;
+        line-height: 1;
+        transition: transform .1s;
+    }
+    .star-btn.filled { color: #f59e0b; }
+    .star-btn:hover  { transform: scale(1.25); color: #f59e0b; }
+</style>
 }

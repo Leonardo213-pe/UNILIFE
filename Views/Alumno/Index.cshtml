@@ -1,0 +1,234 @@
+@using Unilife.Models
+@{
+    ViewData["Title"] = "Mi Dashboard";
+    var usuario        = ViewBag.Usuario       as ApplicationUser;
+    var cursos         = ViewBag.Cursos        as List<Curso>  ?? new();
+    var tareas         = ViewBag.Tareas        as List<Tarea>  ?? new();
+    var eventosRec     = ViewBag.EventosRec    as List<Evento> ?? new();
+    var lugaresRec     = ViewBag.LugaresRec    as List<Lugar>  ?? new();
+    int progreso       = ViewBag.Progreso;
+    int tareasVencidas = ViewBag.TareasVencidas;
+
+    string BadgeEstado(string e) => e switch {
+        "EnProgreso" => "badge-enprogreso",
+        "Completada" => "badge-completada",
+        _            => "badge-pendiente"
+    };
+}
+
+<link rel="stylesheet" href="~/css/tareas.css" asp-append-version="true" />
+
+<style>
+.dash-page     { padding: 32px 40px; }
+.dash-bienvenida {
+    background: linear-gradient(135deg, var(--accent), #c0392b);
+    border-radius: 16px;
+    padding: 28px 32px;
+    color: #fff;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.dash-bienvenida h1 { font-size: 24px; font-weight: 800; margin: 0; }
+.dash-bienvenida p  { margin: 4px 0 0; opacity: .85; }
+.progreso-wrap  { text-align: center; min-width: 80px; }
+.progreso-num   { font-size: 32px; font-weight: 900; line-height: 1; }
+.progreso-label { font-size: 12px; opacity: .85; }
+.metricas-grid  {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+}
+.metrica-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    text-align: center;
+}
+.metrica-num   { font-size: 28px; font-weight: 800; color: var(--accent); }
+.metrica-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.metrica-card.alerta .metrica-num { color: #ef4444; }
+.section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.section-link  { font-size: 12px; color: var(--accent); font-weight: 600; margin-left: auto; text-decoration: none; }
+.dash-grid     { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+@@media (max-width: 768px) { .dash-grid { grid-template-columns: 1fr; } }
+.dash-section  {
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 20px;
+    border: 1px solid var(--border);
+}
+.curso-mini {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.curso-mini:last-child { border-bottom: none; }
+.curso-mini-nombre { font-size: 13px; font-weight: 600; color: var(--text-main); }
+.curso-mini-sub    { font-size: 11px; color: var(--text-muted); }
+.tarea-mini {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.tarea-mini:last-child { border-bottom: none; }
+.tarea-mini-titulo { font-size: 13px; font-weight: 600; color: var(--text-main); flex: 1; }
+.tarea-mini-fecha  { font-size: 11px; color: var(--text-muted); }
+.tarea-mini.vencida .tarea-mini-fecha { color: #ef4444; font-weight: 600; }
+.rec-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@@media (max-width: 900px) { .rec-grid { grid-template-columns: 1fr; } }
+.rec-card {
+    background: var(--bg-app);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+}
+.rec-card-titulo { font-weight: 700; margin-bottom: 4px; color: var(--text-main); }
+.rec-card-sub    { font-size: 11px; color: var(--text-muted); }
+</style>
+
+<div class="dash-page">
+
+    <div class="dash-bienvenida">
+        <div>
+            <h1>¡Hola, @(usuario?.Nombre ?? "Alumno")! 👋</h1>
+            <p>@(usuario?.Carrera ?? "Bienvenido a UniLife")</p>
+        </div>
+        <div class="progreso-wrap">
+            <div class="progreso-num">@progreso%</div>
+            <div class="progreso-label">tareas completadas</div>
+        </div>
+    </div>
+
+    <div class="metricas-grid">
+        <div class="metrica-card">
+            <div class="metrica-num">@ViewBag.TotalCursos</div>
+            <div class="metrica-label">Cursos inscritos</div>
+        </div>
+        <div class="metrica-card">
+            <div class="metrica-num">@ViewBag.TotalTareas</div>
+            <div class="metrica-label">Tareas totales</div>
+        </div>
+        <div class="metrica-card">
+            <div class="metrica-num">@ViewBag.Completadas</div>
+            <div class="metrica-label">Completadas</div>
+        </div>
+        <div class="metrica-card @(tareasVencidas > 0 ? "alerta" : "")">
+            <div class="metrica-num">@tareasVencidas</div>
+            <div class="metrica-label">Vencidas</div>
+        </div>
+    </div>
+
+    <div class="dash-grid">
+        <!-- Mis cursos -->
+        <div class="dash-section">
+            <div class="section-title">
+                <i class="bi bi-book-fill"></i> Mis cursos
+                <a asp-controller="Cursos" asp-action="Index" asp-route-modo="alumno" class="section-link">Ver todos →</a>
+            </div>
+            @if (!cursos.Any())
+            {
+                <p style="color:var(--text-muted); font-size:13px;">No estás inscrito en ningún curso.</p>
+            }
+            else
+            {
+                @foreach (var c in cursos.Take(4))
+                {
+                    var h = c.Horarios.FirstOrDefault();
+                    <div class="curso-mini">
+                        <i class="bi bi-journal-text" style="color:var(--accent); font-size:18px;"></i>
+                        <div>
+                            <div class="curso-mini-nombre">@c.Nombre</div>
+                            <div class="curso-mini-sub">@c.Semestre · @(h != null ? $"{h.Dia} {h.HoraInicio:hh\\:mm}" : "Sin horario")</div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Tareas pendientes -->
+        <div class="dash-section">
+            <div class="section-title">
+                <i class="bi bi-check2-square"></i> Tareas pendientes
+                <a asp-controller="Tareas" asp-action="Index" class="section-link">Ver todas →</a>
+            </div>
+            @if (!tareas.Any())
+            {
+                <p style="color:var(--text-muted); font-size:13px;">¡Sin tareas pendientes! 🎉</p>
+            }
+            else
+            {
+                @foreach (var t in tareas)
+                {
+                    <div class="tarea-mini @(t.EsVencida ? "vencida" : "")">
+                        <span class="badge-estado @BadgeEstado(t.Estado)" style="font-size:10px; padding:2px 7px;">@t.Estado</span>
+                        <span class="tarea-mini-titulo">@t.Titulo</span>
+                        <span class="tarea-mini-fecha">@t.FechaEntrega.ToString("dd MMM")</span>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Eventos recomendados -->
+    @if (eventosRec.Any())
+    {
+        <div class="dash-section" style="margin-bottom:24px;">
+            <div class="section-title">
+                <i class="bi bi-calendar-heart-fill"></i> Eventos recomendados
+                <a asp-controller="Eventos" asp-action="Recomendados" class="section-link">Ver más →</a>
+            </div>
+            <div class="rec-grid">
+                @foreach (var ev in eventosRec)
+                {
+                    <div class="rec-card">
+                        <div class="rec-card-titulo">@ev.Titulo</div>
+                        <div class="rec-card-sub"><i class="bi bi-calendar3"></i> @ev.Fecha.ToString("dd MMM") · @ev.TipoEvento</div>
+                        <div class="rec-card-sub"><i class="bi bi-geo-alt"></i> @ev.Lugar</div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Lugares recomendados -->
+    @if (lugaresRec.Any())
+    {
+        <div class="dash-section">
+            <div class="section-title">
+                <i class="bi bi-stars"></i> Lugares recomendados
+                <a asp-controller="Lugares" asp-action="Recomendados" class="section-link">Ver más →</a>
+            </div>
+            <div class="rec-grid">
+                @foreach (var l in lugaresRec)
+                {
+                    <div class="rec-card">
+                        <div class="rec-card-titulo">@l.Nombre</div>
+                        <div class="rec-card-sub"><i class="bi bi-tag"></i> @l.Tipo · ⭐ @l.Calificacion</div>
+                        <div class="rec-card-sub"><i class="bi bi-geo-alt"></i> @l.Distancia km</div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+</div>
